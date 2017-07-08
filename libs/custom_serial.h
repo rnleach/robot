@@ -13,9 +13,9 @@ Author: Ryan Leach
 
 // Constants for baud rate calculation.
 // These values can be overridden with the -D CFLAG in the makefile.
-#ifndef FOSC
-#   define FOSC 16000000UL
-#   pragma message "\n\n     WARNING: DEFAULT FOSC OF " STRINGIFY(FOSC) " USED FOR CRYSTAL\n" \
+#ifndef F_CPU
+#   define F_CPU 16000000UL
+#   pragma message "\n\n     WARNING: DEFAULT F_CPU OF " STRINGIFY(F_CPU) " USED FOR CRYSTAL\n" \
                        "     FREQUENCY. OVERRIDE WITH COMPILER OPTION IF NEEDED.\n\n"
 #endif
 #ifndef BAUD
@@ -24,40 +24,40 @@ Author: Ryan Leach
                        "     RATE. OVERRIDE WITH COMPILER OPTION IF NEEDED.\n\n"
 #endif
 
-#if BAUD == 115200 && FOSC == 16000000UL
+#if BAUD == 115200 && F_CPU == 16000000UL
 #  define CALC_UBRR 8
-#elif BAUD == 76800 && FOSC == 16000000UL
+#elif BAUD == 76800 && F_CPU == 16000000UL
 #  define CALC_UBRR 12
-#elif BAUD == 57600 && FOSC == 16000000UL
+#elif BAUD == 57600 && F_CPU == 16000000UL
 #  define CALC_UBRR 16
-#elif BAUD == 38400 && FOSC == 16000000UL
+#elif BAUD == 38400 && F_CPU == 16000000UL
 #  define CALC_UBRR 25
-#elif BAUD == 28800 && FOSC == 16000000UL
+#elif BAUD == 28800 && F_CPU == 16000000UL
 #  define CALC_UBRR 34
-#elif BAUD == 19200 && FOSC == 16000000UL
+#elif BAUD == 19200 && F_CPU == 16000000UL
 #  define CALC_UBRR 51
-#elif BAUD == 14400 && FOSC == 16000000UL
+#elif BAUD == 14400 && F_CPU == 16000000UL
 #  define CALC_UBRR 68
-#elif BAUD == 9600 && FOSC == 16000000UL
+#elif BAUD == 9600 && F_CPU == 16000000UL
 #  define CALC_UBRR 103
-#elif BAUD == 4800 && FOSC == 16000000UL
+#elif BAUD == 4800 && F_CPU == 16000000UL
 #  define CALC_UBRR 207
-#elif BAUD == 2400 && FOSC == 16000000UL
+#elif BAUD == 2400 && F_CPU == 16000000UL
 #  define CALC_UBRR 416
-#elif BAUD == 1200 && FOSC == 16000000UL
+#elif BAUD == 1200 && F_CPU == 16000000UL
 #  define CALC_UBRR 832
-#elif BAUD == 600 && FOSC == 16000000UL
+#elif BAUD == 600 && F_CPU == 16000000UL
 #  define CALC_UBRR 1666
-#elif BAUD == 300 && FOSC == 16000000UL
+#elif BAUD == 300 && F_CPU == 16000000UL
 #  define CALC_UBRR 3332
 #else
    // Have to be careful here, experimentation shows this requires rounding, not truncation.
    // Hence the checks for common values above. 
-#  define CALC_UBRR ((FOSC / 16 / BAUD) - 1)
+#  define CALC_UBRR ((F_CPU / 16 / BAUD) - 1)
 #  pragma message "\n\n\nWARNING: USING CALCULATED UBRR FOR SERIAL BAUD RATE - MAY FAIL.\n\n\n"
 #endif
 
-#pragma message("\n\n          FOSC defined as => " STRINGIFY(FOSC) \
+#pragma message("\n\n          F_CPU defined as => " STRINGIFY(F_CPU) \
                   "\n          and BAUD rate defined as => " STRINGIFY(BAUD) \
                   "\n          and the CALC_UBRR value is => " STRINGIFY(CALC_UBRR) \
                "\n\n")

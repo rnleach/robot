@@ -8,6 +8,7 @@ A customized header only library for setting up and using PWM with avr-gcc/avr-g
 Author: Ryan Leach
 **************************************************************************************************/
 #include <avr/io.h>
+#include <util/atomic.h>
 #include "compile_time.h"
 
 namespace Timer0 {
@@ -211,6 +212,318 @@ namespace Timer0 {
     }
 }
 
+class Timer1 {
+    // TODO: Change this to a namespace with static variables for currentMode_ and currentPrescaler_
+    public:
+        enum class Prescale { None = 1, P8 = 8, P64 = 64, P256 = 256, P1024 = 1024 };
+
+        enum class Mode {
+            Normal,                     // Just a counter, time
+            PhaseCorrectPWM08,          // 8-bit, TOP = 0x00FF
+            PhaseCorrectPWM09,          // 9-bit, TOP = 0x01FF
+            PhaseCorrectPWM10,          // 10-bit, TOP = 0x03FF
+            CTC,                        // TOP = OCR1A
+            FastPWM08,                  // 8-bit, TOP = 0x00FF
+            FastPWM09,                  // 9-bit, TOP = 0x01FF
+            FastPWM10,                  // 10-bit, TOP = 0x03FF
+            PhaseFreqCorrect_InputTop,  // TOP = ICR1
+            PhaseFreqCorrect_OutputTop, // TOP = OCR1A
+            PhaseCorrect_InputTop,      // TOP = ICR1
+            PhaseCorrect_OutputTop,     // TOP = OCR1A
+            CTC_InputTop,               // TOP = ICR1
+            FastPWM_InputTop,           // TOP = ICR1
+            FastPWM_OutputTop,          // TOP = OCR1A
+        };
+
+        // Compare Match behavior
+        enum class CompareMatch {
+            // Toggle options are many depending on other settings AND modes.
+            // Toggle,
+            // Clear, or non-inverting
+            Clear,        // Non-PWM
+            NonInverting, // Fast PWM
+            ClearUp,      // Phase correct PWM
+            
+            // Set, or inverting 
+            Set,          // Non-PWM
+            Inverting,    // Fast PWM
+            ClearDown,    // Phase correct PWM
+        };
+
+        Timer1(Mode mode, Prescale prescale) :currentMode_{mode}, currentPrescale_ {prescale} {
+            switch(mode) {
+                case Mode::Normal:
+                    CLEAR_BIT(TCCR1A, WGM10);
+                    CLEAR_BIT(TCCR1A, WGM11);
+                    CLEAR_BIT(TCCR1B, WGM12);
+                    CLEAR_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::PhaseCorrectPWM08:
+                    SET_BIT(TCCR1A, WGM10);
+                    CLEAR_BIT(TCCR1A, WGM11);
+                    CLEAR_BIT(TCCR1B, WGM12);
+                    CLEAR_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::PhaseCorrectPWM09:
+                    CLEAR_BIT(TCCR1A, WGM10);
+                    SET_BIT(TCCR1A, WGM11);
+                    CLEAR_BIT(TCCR1B, WGM12);
+                    CLEAR_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::PhaseCorrectPWM10:
+                    SET_BIT(TCCR1A, WGM10);
+                    SET_BIT(TCCR1A, WGM11);
+                    CLEAR_BIT(TCCR1B, WGM12);
+                    CLEAR_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::CTC:
+                    CLEAR_BIT(TCCR1A, WGM10);
+                    CLEAR_BIT(TCCR1A, WGM11);
+                    SET_BIT(TCCR1B, WGM12);
+                    CLEAR_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::FastPWM08:
+                    SET_BIT(TCCR1A, WGM10);
+                    CLEAR_BIT(TCCR1A, WGM11);
+                    SET_BIT(TCCR1B, WGM12);
+                    CLEAR_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::FastPWM09:
+                    CLEAR_BIT(TCCR1A, WGM10);
+                    SET_BIT(TCCR1A, WGM11);
+                    SET_BIT(TCCR1B, WGM12);
+                    CLEAR_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::FastPWM10:
+                    SET_BIT(TCCR1A, WGM10);
+                    SET_BIT(TCCR1A, WGM11);
+                    SET_BIT(TCCR1B, WGM12);
+                    CLEAR_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::PhaseFreqCorrect_InputTop:
+                    CLEAR_BIT(TCCR1A, WGM10);
+                    CLEAR_BIT(TCCR1A, WGM11);
+                    CLEAR_BIT(TCCR1B, WGM12);
+                    SET_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::PhaseFreqCorrect_OutputTop:
+                    SET_BIT(TCCR1A, WGM10);
+                    CLEAR_BIT(TCCR1A, WGM11);
+                    CLEAR_BIT(TCCR1B, WGM12);
+                    SET_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::PhaseCorrect_InputTop:
+                    CLEAR_BIT(TCCR1A, WGM10);
+                    SET_BIT(TCCR1A, WGM11);
+                    CLEAR_BIT(TCCR1B, WGM12);
+                    SET_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::PhaseCorrect_OutputTop:
+                    SET_BIT(TCCR1A, WGM10);
+                    SET_BIT(TCCR1A, WGM11);
+                    CLEAR_BIT(TCCR1B, WGM12);
+                    SET_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::CTC_InputTop:
+                    CLEAR_BIT(TCCR1A, WGM10);
+                    CLEAR_BIT(TCCR1A, WGM11);
+                    SET_BIT(TCCR1B, WGM12);
+                    SET_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::FastPWM_InputTop:
+                    CLEAR_BIT(TCCR1A, WGM10);
+                    SET_BIT(TCCR1A, WGM11);
+                    SET_BIT(TCCR1B, WGM12);
+                    SET_BIT(TCCR1B, WGM13);
+                    break;
+                case Mode::FastPWM_OutputTop:
+                    SET_BIT(TCCR1A, WGM10);
+                    SET_BIT(TCCR1A, WGM11);
+                    SET_BIT(TCCR1B, WGM12);
+                    SET_BIT(TCCR1B, WGM13);
+                    break;
+            }
+
+            set_prescaler(prescale);
+        }
+
+        void set_prescaler(Prescale newPrescale) {
+            switch(newPrescale) {
+                case Prescale::None:
+                    SET_BIT(TCCR1B, CS10);
+                    CLEAR_BIT(TCCR1B, CS11);
+                    CLEAR_BIT(TCCR1B, CS12);
+                    break;
+                case Prescale::P8:
+                    CLEAR_BIT(TCCR1B, CS10);
+                    SET_BIT(TCCR1B, CS11);
+                    CLEAR_BIT(TCCR1B, CS12);
+                    break;
+                case Prescale::P64:
+                    SET_BIT(TCCR1B, CS10);
+                    SET_BIT(TCCR1B, CS11);
+                    CLEAR_BIT(TCCR1B, CS12);
+                    break;
+                case Prescale::P256:
+                    CLEAR_BIT(TCCR1B, CS10);
+                    CLEAR_BIT(TCCR1B, CS11);
+                    SET_BIT(TCCR1B, CS12);
+                    break;
+                case Prescale::P1024:
+                    SET_BIT(TCCR1B, CS10);
+                    CLEAR_BIT(TCCR1B, CS11);
+                    SET_BIT(TCCR1B, CS12);
+                    break;
+            }
+        }
+
+        uint16_t get_max() {
+            switch(currentMode_) {
+                case Mode::Normal:
+                    return 0xFFFF;
+                case Mode::PhaseCorrectPWM08:
+                case Mode::FastPWM08:
+                    return 0x00FF;
+                case Mode::PhaseCorrectPWM09:
+                case Mode::FastPWM09:
+                    return 0x01FF;
+                case Mode::PhaseCorrectPWM10:
+                case Mode::FastPWM10:
+                    return 0x03FF;
+                case Mode::CTC:
+                case Mode::PhaseFreqCorrect_OutputTop:
+                case Mode::PhaseCorrect_OutputTop:
+                case Mode::FastPWM_OutputTop:
+                case Mode::PhaseFreqCorrect_InputTop:
+                case Mode::PhaseCorrect_InputTop:
+                case Mode::CTC_InputTop:
+                case Mode::FastPWM_InputTop:
+                    return 0xFFFF;
+            }
+        }
+
+        uint16_t get_top() {
+            switch(currentMode_) {
+                case Mode::Normal:
+                    return 0xFFFF;
+                case Mode::PhaseCorrectPWM08:
+                case Mode::FastPWM08:
+                    return 0x00FF;
+                case Mode::PhaseCorrectPWM09:
+                case Mode::FastPWM09:
+                    return 0x01FF;
+                case Mode::PhaseCorrectPWM10:
+                case Mode::FastPWM10:
+                    return 0x03FF;
+                case Mode::CTC:
+                case Mode::PhaseFreqCorrect_OutputTop:
+                case Mode::PhaseCorrect_OutputTop:
+                case Mode::FastPWM_OutputTop:
+                    {
+                        uint16_t value;
+                        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+                            value = OCR1A;
+                        }
+                        return value;
+                    }
+                case Mode::PhaseFreqCorrect_InputTop:
+                case Mode::PhaseCorrect_InputTop:
+                case Mode::CTC_InputTop:
+                case Mode::FastPWM_InputTop:
+                    {
+                        uint16_t value;
+                        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+                            value = ICR1;
+                        }
+                        return value;
+                    }
+            }
+        }
+
+        void set_top(uint16_t newTop) {
+            switch(currentMode_) {
+                //
+                // Ignore this method in cases where you cannot set top due to the mode!
+                //
+                case Mode::Normal:
+                case Mode::PhaseCorrectPWM08:
+                case Mode::FastPWM08:
+                case Mode::PhaseCorrectPWM09:
+                case Mode::FastPWM09:
+                case Mode::PhaseCorrectPWM10:
+                case Mode::FastPWM10:
+                    break;
+                case Mode::CTC:
+                case Mode::PhaseFreqCorrect_OutputTop:
+                case Mode::PhaseCorrect_OutputTop:
+                case Mode::FastPWM_OutputTop:
+                    {
+                        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+                            OCR1A = newTop;
+                        }
+                    }
+                    break;
+                case Mode::PhaseFreqCorrect_InputTop:
+                case Mode::PhaseCorrect_InputTop:
+                case Mode::CTC_InputTop:
+                case Mode::FastPWM_InputTop:
+                    {
+                        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+                            ICR1 = newTop;
+                        }
+                    }
+            }
+        }
+
+        void set_frequency(uint16_t hertz) {
+            // Calculate the prescaler and set it
+            uint16_t minScale = (uint16_t)((float)F_CPU / (float)hertz / (float)get_max());
+            // TODO: set prescaler
+            uint16_t top = F_CPU / static_cast<uint16_t>(currentPrescale_) / hertz - 1;
+            // TODO:
+        }
+
+        void set_duty_cycle_PB1(uint16_t newDuty) { 
+            // TODO: 
+        }
+
+        void set_duty_cycle_PIN09(uint16_t newDuty) { 
+            // TODO: 
+        }
+
+        uint16_t get_duty_cycle_PB1() { 
+            // TODO: 
+            return 0;
+        }
+
+        uint16_t get_duty_cycle_PIN09() { 
+            // TODO: 
+            return 0;
+        }
+
+        void set_duty_cycle_PB2(uint16_t newDuty) { 
+            // TODO: 
+        }
+
+        void set_duty_cycle_PIN10(uint16_t newDuty) { 
+            // TODO: 
+        }
+
+        uint16_t get_duty_cycle_PB2() { 
+            // TODO: 
+            return 0;
+        }
+
+        uint16_t get_duty_cycle_PIN10() { 
+            // TODO: 
+            return 0;
+        }
+
+    private:
+        Mode currentMode_;
+        Prescale currentPrescale_;
+};
+
 namespace Timer2 {
     // Predefined prescaler settings for Timer2.
     enum class Prescale { None, P8, P32, P64 };
@@ -227,7 +540,7 @@ namespace Timer2 {
 
     // Compare Match behavior
     enum class CompareMatch {
-        // Toggle only available on OC0A, not on OC0B. Not handled by library at this time.
+        // Toggle only available on OC2A, not on OC2B. Not handled by library at this time.
         // Toggle,
         // Clear, or non-inverting
         Clear,        // Non-PWM
