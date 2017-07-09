@@ -12,6 +12,7 @@
             "intelliSenseMode": "clang-x64",
             "browse": {
                 "path": [
+                    "${workspaceRoot}/*",
                     "/usr/local/Cellar/avr-gcc/6.3.0/avr/include/*",
                     "/usr/local/Cellar/avr-gcc/6.3.0/avr/include/avr/*",
                     "${workspaceRoot}/libs/*"
@@ -25,12 +26,14 @@
             "includePath": [
                 "${workspaceRoot}",
                 "/usr/lib/avr/include/avr",
+                "/usr/lib/avr/include/",
                 "${workspaceRoot}/libs"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
             "browse": {
                 "path": [
+                    "${workspaceRoot}/*",
                     "/usr/lib/avr/include/avr/*",
                     "/usr/lib/avr/include/*",
                     "${workspaceRoot}/libs/*"
