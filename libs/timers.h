@@ -13,7 +13,7 @@ Author: Ryan Leach
 
 namespace Timer0 {
     // Predefined prescaler settings for Timer0.
-    enum class Prescale { None, P8, P64, P256, P1024 };
+    enum class Prescale { None = 1, P8 = 8, P64 = 64, P256 = 256, P1024 = 1024 };
 
     // Modes for Timer0
     enum class Mode {
@@ -29,6 +29,7 @@ namespace Timer0 {
     enum class CompareMatch {
         // Toggle only available on OC0A, not on OC0B. Not handled by library at this time.
         // Toggle,
+
         // Clear, or non-inverting
         Clear,        // Non-PWM
         NonInverting, // Fast PWM
@@ -40,493 +41,91 @@ namespace Timer0 {
         ClearDown,    // Phase correct PWM
     };
 
-    void init(Mode mode, Prescale prescale) {
-        switch(mode) {
-            case Mode::Normal:
-                CLEAR_BIT(TCCR0A, WGM00);
-                CLEAR_BIT(TCCR0A, WGM01);
-                CLEAR_BIT(TCCR0B, WGM02);
-                break;
-            case Mode::CTC:
-                CLEAR_BIT(TCCR0A, WGM00);
-                SET_BIT(TCCR0A, WGM01);
-                CLEAR_BIT(TCCR0B, WGM02);
-                break;
-            case Mode::PWM_Phase_Correct:
-                SET_BIT(TCCR0A, WGM00);
-                CLEAR_BIT(TCCR0A, WGM01);
-                CLEAR_BIT(TCCR0B, WGM02);
-                break;
-            case Mode::PWM_Fast:
-                SET_BIT(TCCR0A, WGM00);
-                SET_BIT(TCCR0A, WGM01);
-                CLEAR_BIT(TCCR0B, WGM02);
-                break;
-        }
-
-        switch(prescale) {
-            case Prescale::None:
-                SET_BIT(TCCR0B, CS00);
-                CLEAR_BIT(TCCR0B, CS01);
-                CLEAR_BIT(TCCR0B, CS02);
-                break;
-            case Prescale::P8:
-                CLEAR_BIT(TCCR0B, CS00);
-                SET_BIT(TCCR0B, CS01);
-                CLEAR_BIT(TCCR0B, CS02);
-                break;
-            case Prescale::P64:
-                SET_BIT(TCCR0B, CS00);
-                SET_BIT(TCCR0B, CS01);
-                CLEAR_BIT(TCCR0B, CS02);
-                break;
-            case Prescale::P256:
-                CLEAR_BIT(TCCR0B, CS00);
-                CLEAR_BIT(TCCR0B, CS01);
-                SET_BIT(TCCR0B, CS02);
-                break;
-            case Prescale::P1024:
-                SET_BIT(TCCR0B, CS00);
-                CLEAR_BIT(TCCR0B, CS01);
-                SET_BIT(TCCR0B, CS02);
-                break;
-        }
-    }
-
-    void set_count(uint8_t new_count) {
-        TCNT0 = new_count;
-    }
-
-    uint8_t get_count() {
-        return TCNT0;
-    }
-
-    void set_compare_match_PD6(CompareMatch compare_match) {
-        switch(compare_match) {
-            case CompareMatch::Clear:
-            case CompareMatch::NonInverting:
-            case CompareMatch::ClearUp:
-                CLEAR_BIT(TCCR0A, COM0A0);
-                SET_BIT(TCCR0A, COM0A1);           
-                break;
-            case CompareMatch::Set:
-            case CompareMatch::Inverting:
-            case CompareMatch::ClearDown:
-                SET_BIT(TCCR0A, COM0A0);
-                SET_BIT(TCCR0A, COM0A1);  
-                break;
-        }
-    }
-
-    void set_compare_match_PIN06(CompareMatch compare_match) {
-        set_compare_match_PD6(compare_match);
-    }
-
-    void set_OCR0A(uint8_t new_value) {
-        OCR0A = new_value;
-    }
-
-    uint8_t get_OCR0A() {
-        return OCR0A;
-    }
-
-    void set_duty_cycle_PD6(uint8_t duty) {
-        // We have to special case this for the case of 0 duty, see last  2 paragraphs of section
-        // 15.7.3 on the data sheet.
-        static uint8_t old_duty = 0;
-
-        // Turn it off for special case of 0
-        if( duty == 0) CLEAR_BIT(DDRD, PD6);
-
-        // If it was 0, turn it back on
-        else if( duty != 0 && old_duty == 0) SET_BIT(DDRD, PD6);
-        
-        // Remember old value
-        old_duty = OCR0A;
-
-        // Set the duty
-        OCR0A = duty;
-    }
-
-    void set_duty_cycle_PIN06(uint8_t duty) {
-        set_duty_cycle_PD6(duty);
-    }
-
-    uint8_t get_duty_cycle_PD6() {
-        return get_OCR0A();
-    }
-
-    void set_compare_match_PD5(CompareMatch compare_match) {
-        switch(compare_match) {
-            case CompareMatch::Clear:
-            case CompareMatch::NonInverting:
-            case CompareMatch::ClearUp:
-                CLEAR_BIT(TCCR0A, COM0B0);
-                SET_BIT(TCCR0A, COM0B1);           
-                break;
-            case CompareMatch::Set:
-            case CompareMatch::Inverting:
-            case CompareMatch::ClearDown:
-                SET_BIT(TCCR0A, COM0B0);
-                SET_BIT(TCCR0A, COM0B1);  
-                break;
-        }
-    }
-
-    void set_compare_match_PIN05(CompareMatch compare_match) {
-        set_compare_match_PD5(compare_match);
-    }
-
-    void set_OCR0B(uint8_t new_value) {
-        OCR0B = new_value;
-    }
-
-    uint8_t get_OCR0B() {
-        return OCR0B;
-    }
-
-    void set_duty_cycle_PD5(uint8_t duty) {
-        // We have to special case this for the case of 0 duty, see last  2 paragraphs of section
-        // 15.7.3 on the data sheet.
-        static uint8_t old_duty = 0;
-
-        // Turn it off for special case of 0
-        if( duty == 0) CLEAR_BIT(DDRD, PD5);
-
-        // If it was 0, turn it back on
-        else if( duty != 0 && old_duty == 0) SET_BIT(DDRD, PD5);
-        
-        // Remember old value
-        old_duty = OCR0B;
-
-        // Set the duty
-        OCR0B = duty;
-    }
-
-    uint8_t get_duty_cycle_PD5() {
-        return get_OCR0B();
-    }
-
-    void set_duty_cycle_PIN05(uint8_t duty) {
-        set_duty_cycle_PD5(duty);
-    }
+    void init(Mode mode, Prescale prescale);
+    void set_count(uint8_t new_count);
+    uint8_t get_count();
+    void set_compare_match_PD6(CompareMatch compare_match);
+    void set_compare_match_PIN06(CompareMatch compare_match);
+    void set_OCR0A(uint8_t new_value);
+    uint8_t get_OCR0A();
+    void set_duty_cycle_PD6(uint8_t duty);
+    void set_duty_cycle_PIN06(uint8_t duty);
+    uint8_t get_duty_cycle_PD6();
+    void set_compare_match_PD5(CompareMatch compare_match);
+    void set_compare_match_PIN05(CompareMatch compare_match);
+    void set_OCR0B(uint8_t new_value);
+    uint8_t get_OCR0B();
+    void set_duty_cycle_PD5(uint8_t duty);
+    uint8_t get_duty_cycle_PD5();
+    void set_duty_cycle_PIN05(uint8_t duty);
 }
 
-class Timer1 {
-    // TODO: Change this to a namespace with static variables for currentMode_ and currentPrescaler_
-    public:
-        enum class Prescale { None = 1, P8 = 8, P64 = 64, P256 = 256, P1024 = 1024 };
+namespace Timer1 {
+    
+    enum class Prescale { None = 1, P8 = 8, P64 = 64, P256 = 256, P1024 = 1024 };
 
-        enum class Mode {
-            Normal,                     // Just a counter, time
-            PhaseCorrectPWM08,          // 8-bit, TOP = 0x00FF
-            PhaseCorrectPWM09,          // 9-bit, TOP = 0x01FF
-            PhaseCorrectPWM10,          // 10-bit, TOP = 0x03FF
-            CTC,                        // TOP = OCR1A
-            FastPWM08,                  // 8-bit, TOP = 0x00FF
-            FastPWM09,                  // 9-bit, TOP = 0x01FF
-            FastPWM10,                  // 10-bit, TOP = 0x03FF
-            PhaseFreqCorrect_InputTop,  // TOP = ICR1
-            PhaseFreqCorrect_OutputTop, // TOP = OCR1A
-            PhaseCorrect_InputTop,      // TOP = ICR1
-            PhaseCorrect_OutputTop,     // TOP = OCR1A
-            CTC_InputTop,               // TOP = ICR1
-            FastPWM_InputTop,           // TOP = ICR1
-            FastPWM_OutputTop,          // TOP = OCR1A
-        };
+    enum class Mode {
+        Normal,                     // Just a counter, time
+        PhaseCorrectPWM08,          // 8-bit, TOP = 0x00FF
+        PhaseCorrectPWM09,          // 9-bit, TOP = 0x01FF
+        PhaseCorrectPWM10,          // 10-bit, TOP = 0x03FF
+        CTC,                        // TOP = OCR1A
+        FastPWM08,                  // 8-bit, TOP = 0x00FF
+        FastPWM09,                  // 9-bit, TOP = 0x01FF
+        FastPWM10,                  // 10-bit, TOP = 0x03FF
+        PhaseFreqCorrect_InputTop,  // TOP = ICR1
+        PhaseFreqCorrect_OutputTop, // TOP = OCR1A
+        PhaseCorrect_InputTop,      // TOP = ICR1
+        PhaseCorrect_OutputTop,     // TOP = OCR1A
+        CTC_InputTop,               // TOP = ICR1
+        FastPWM_InputTop,           // TOP = ICR1
+        FastPWM_OutputTop,          // TOP = OCR1A
+    };
 
-        // Compare Match behavior
-        enum class CompareMatch {
-            // Toggle options are many depending on other settings AND modes.
-            // Toggle,
-            // Clear, or non-inverting
-            Clear,        // Non-PWM
-            NonInverting, // Fast PWM
-            ClearUp,      // Phase correct PWM
-            
-            // Set, or inverting 
-            Set,          // Non-PWM
-            Inverting,    // Fast PWM
-            ClearDown,    // Phase correct PWM
-        };
+    // Compare Match behavior
+    enum class CompareMatch {
+        // Toggle options are many depending on other settings AND modes.
+        // Toggle,
+        // Clear, or non-inverting
+        Clear,        // Non-PWM
+        NonInverting, // Fast PWM
+        ClearUp,      // Phase correct PWM
+        
+        // Set, or inverting 
+        Set,          // Non-PWM
+        Inverting,    // Fast PWM
+        ClearDown,    // Phase correct PWM
+    };
 
-        Timer1(Mode mode, Prescale prescale) :currentMode_{mode}, currentPrescale_ {prescale} {
-            switch(mode) {
-                case Mode::Normal:
-                    CLEAR_BIT(TCCR1A, WGM10);
-                    CLEAR_BIT(TCCR1A, WGM11);
-                    CLEAR_BIT(TCCR1B, WGM12);
-                    CLEAR_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::PhaseCorrectPWM08:
-                    SET_BIT(TCCR1A, WGM10);
-                    CLEAR_BIT(TCCR1A, WGM11);
-                    CLEAR_BIT(TCCR1B, WGM12);
-                    CLEAR_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::PhaseCorrectPWM09:
-                    CLEAR_BIT(TCCR1A, WGM10);
-                    SET_BIT(TCCR1A, WGM11);
-                    CLEAR_BIT(TCCR1B, WGM12);
-                    CLEAR_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::PhaseCorrectPWM10:
-                    SET_BIT(TCCR1A, WGM10);
-                    SET_BIT(TCCR1A, WGM11);
-                    CLEAR_BIT(TCCR1B, WGM12);
-                    CLEAR_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::CTC:
-                    CLEAR_BIT(TCCR1A, WGM10);
-                    CLEAR_BIT(TCCR1A, WGM11);
-                    SET_BIT(TCCR1B, WGM12);
-                    CLEAR_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::FastPWM08:
-                    SET_BIT(TCCR1A, WGM10);
-                    CLEAR_BIT(TCCR1A, WGM11);
-                    SET_BIT(TCCR1B, WGM12);
-                    CLEAR_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::FastPWM09:
-                    CLEAR_BIT(TCCR1A, WGM10);
-                    SET_BIT(TCCR1A, WGM11);
-                    SET_BIT(TCCR1B, WGM12);
-                    CLEAR_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::FastPWM10:
-                    SET_BIT(TCCR1A, WGM10);
-                    SET_BIT(TCCR1A, WGM11);
-                    SET_BIT(TCCR1B, WGM12);
-                    CLEAR_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::PhaseFreqCorrect_InputTop:
-                    CLEAR_BIT(TCCR1A, WGM10);
-                    CLEAR_BIT(TCCR1A, WGM11);
-                    CLEAR_BIT(TCCR1B, WGM12);
-                    SET_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::PhaseFreqCorrect_OutputTop:
-                    SET_BIT(TCCR1A, WGM10);
-                    CLEAR_BIT(TCCR1A, WGM11);
-                    CLEAR_BIT(TCCR1B, WGM12);
-                    SET_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::PhaseCorrect_InputTop:
-                    CLEAR_BIT(TCCR1A, WGM10);
-                    SET_BIT(TCCR1A, WGM11);
-                    CLEAR_BIT(TCCR1B, WGM12);
-                    SET_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::PhaseCorrect_OutputTop:
-                    SET_BIT(TCCR1A, WGM10);
-                    SET_BIT(TCCR1A, WGM11);
-                    CLEAR_BIT(TCCR1B, WGM12);
-                    SET_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::CTC_InputTop:
-                    CLEAR_BIT(TCCR1A, WGM10);
-                    CLEAR_BIT(TCCR1A, WGM11);
-                    SET_BIT(TCCR1B, WGM12);
-                    SET_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::FastPWM_InputTop:
-                    CLEAR_BIT(TCCR1A, WGM10);
-                    SET_BIT(TCCR1A, WGM11);
-                    SET_BIT(TCCR1B, WGM12);
-                    SET_BIT(TCCR1B, WGM13);
-                    break;
-                case Mode::FastPWM_OutputTop:
-                    SET_BIT(TCCR1A, WGM10);
-                    SET_BIT(TCCR1A, WGM11);
-                    SET_BIT(TCCR1B, WGM12);
-                    SET_BIT(TCCR1B, WGM13);
-                    break;
-            }
-
-            set_prescaler(prescale);
-        }
-
-        void set_prescaler(Prescale newPrescale) {
-            switch(newPrescale) {
-                case Prescale::None:
-                    SET_BIT(TCCR1B, CS10);
-                    CLEAR_BIT(TCCR1B, CS11);
-                    CLEAR_BIT(TCCR1B, CS12);
-                    break;
-                case Prescale::P8:
-                    CLEAR_BIT(TCCR1B, CS10);
-                    SET_BIT(TCCR1B, CS11);
-                    CLEAR_BIT(TCCR1B, CS12);
-                    break;
-                case Prescale::P64:
-                    SET_BIT(TCCR1B, CS10);
-                    SET_BIT(TCCR1B, CS11);
-                    CLEAR_BIT(TCCR1B, CS12);
-                    break;
-                case Prescale::P256:
-                    CLEAR_BIT(TCCR1B, CS10);
-                    CLEAR_BIT(TCCR1B, CS11);
-                    SET_BIT(TCCR1B, CS12);
-                    break;
-                case Prescale::P1024:
-                    SET_BIT(TCCR1B, CS10);
-                    CLEAR_BIT(TCCR1B, CS11);
-                    SET_BIT(TCCR1B, CS12);
-                    break;
-            }
-        }
-
-        uint16_t get_max() {
-            switch(currentMode_) {
-                case Mode::Normal:
-                    return 0xFFFF;
-                case Mode::PhaseCorrectPWM08:
-                case Mode::FastPWM08:
-                    return 0x00FF;
-                case Mode::PhaseCorrectPWM09:
-                case Mode::FastPWM09:
-                    return 0x01FF;
-                case Mode::PhaseCorrectPWM10:
-                case Mode::FastPWM10:
-                    return 0x03FF;
-                case Mode::CTC:
-                case Mode::PhaseFreqCorrect_OutputTop:
-                case Mode::PhaseCorrect_OutputTop:
-                case Mode::FastPWM_OutputTop:
-                case Mode::PhaseFreqCorrect_InputTop:
-                case Mode::PhaseCorrect_InputTop:
-                case Mode::CTC_InputTop:
-                case Mode::FastPWM_InputTop:
-                    return 0xFFFF;
-            }
-        }
-
-        uint16_t get_top() {
-            switch(currentMode_) {
-                case Mode::Normal:
-                    return 0xFFFF;
-                case Mode::PhaseCorrectPWM08:
-                case Mode::FastPWM08:
-                    return 0x00FF;
-                case Mode::PhaseCorrectPWM09:
-                case Mode::FastPWM09:
-                    return 0x01FF;
-                case Mode::PhaseCorrectPWM10:
-                case Mode::FastPWM10:
-                    return 0x03FF;
-                case Mode::CTC:
-                case Mode::PhaseFreqCorrect_OutputTop:
-                case Mode::PhaseCorrect_OutputTop:
-                case Mode::FastPWM_OutputTop:
-                    {
-                        uint16_t value;
-                        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-                            value = OCR1A;
-                        }
-                        return value;
-                    }
-                case Mode::PhaseFreqCorrect_InputTop:
-                case Mode::PhaseCorrect_InputTop:
-                case Mode::CTC_InputTop:
-                case Mode::FastPWM_InputTop:
-                    {
-                        uint16_t value;
-                        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-                            value = ICR1;
-                        }
-                        return value;
-                    }
-            }
-        }
-
-        void set_top(uint16_t newTop) {
-            switch(currentMode_) {
-                //
-                // Ignore this method in cases where you cannot set top due to the mode!
-                //
-                case Mode::Normal:
-                case Mode::PhaseCorrectPWM08:
-                case Mode::FastPWM08:
-                case Mode::PhaseCorrectPWM09:
-                case Mode::FastPWM09:
-                case Mode::PhaseCorrectPWM10:
-                case Mode::FastPWM10:
-                    break;
-                case Mode::CTC:
-                case Mode::PhaseFreqCorrect_OutputTop:
-                case Mode::PhaseCorrect_OutputTop:
-                case Mode::FastPWM_OutputTop:
-                    {
-                        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-                            OCR1A = newTop;
-                        }
-                    }
-                    break;
-                case Mode::PhaseFreqCorrect_InputTop:
-                case Mode::PhaseCorrect_InputTop:
-                case Mode::CTC_InputTop:
-                case Mode::FastPWM_InputTop:
-                    {
-                        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-                            ICR1 = newTop;
-                        }
-                    }
-            }
-        }
-
-        void set_frequency(uint16_t hertz) {
-            // Calculate the prescaler and set it
-            uint16_t minScale = (uint16_t)((float)F_CPU / (float)hertz / (float)get_max());
-            // TODO: set prescaler
-            uint16_t top = F_CPU / static_cast<uint16_t>(currentPrescale_) / hertz - 1;
-            // TODO:
-        }
-
-        void set_duty_cycle_PB1(uint16_t newDuty) { 
-            // TODO: 
-        }
-
-        void set_duty_cycle_PIN09(uint16_t newDuty) { 
-            // TODO: 
-        }
-
-        uint16_t get_duty_cycle_PB1() { 
-            // TODO: 
-            return 0;
-        }
-
-        uint16_t get_duty_cycle_PIN09() { 
-            // TODO: 
-            return 0;
-        }
-
-        void set_duty_cycle_PB2(uint16_t newDuty) { 
-            // TODO: 
-        }
-
-        void set_duty_cycle_PIN10(uint16_t newDuty) { 
-            // TODO: 
-        }
-
-        uint16_t get_duty_cycle_PB2() { 
-            // TODO: 
-            return 0;
-        }
-
-        uint16_t get_duty_cycle_PIN10() { 
-            // TODO: 
-            return 0;
-        }
-
-    private:
-        Mode currentMode_;
-        Prescale currentPrescale_;
+    void init(Mode mode, Prescale prescale);
+    void set_mode(Mode mode);
+    void set_prescaler(Prescale newPrescale);
+    uint8_t get_prescale();
+    uint16_t get_max();
+    uint16_t get_top();
+    void set_top(uint16_t newTop);
+    void set_frequency(uint16_t hertz);
+    void set_OCR1A(uint16_t newValue);
+    uint16_t get_OCR1A();
+    void set_duty_cycle_PB1(uint16_t newDuty);
+    void set_duty_cycle_PIN09(uint16_t newDuty);
+    uint16_t get_duty_cycle_PB1();
+    uint16_t get_duty_cycle_PIN09();
+    void set_compare_match_PB1(CompareMatch compareMatch);
+    void set_compare_match_PIN09(CompareMatch compareMatch);
+    void set_OCR1B(uint16_t newValue);
+    uint16_t get_OCR1B();
+    void set_duty_cycle_PB2(uint16_t newDuty);
+    void set_duty_cycle_PIN10(uint16_t newDuty);
+    uint16_t get_duty_cycle_PB2();
+    uint16_t get_duty_cycle_PIN10();
+    void set_compare_match_PB2(CompareMatch compareMatch);
+    void set_compare_match_PIN10(CompareMatch compareMatch);
 };
 
 namespace Timer2 {
     // Predefined prescaler settings for Timer2.
-    enum class Prescale { None, P8, P32, P64 };
+    enum class Prescale { None = 1, P8 = 8, P32 = 32, P64 = 64 };
 
     // Modes for Timer0
     enum class Mode {
@@ -542,6 +141,7 @@ namespace Timer2 {
     enum class CompareMatch {
         // Toggle only available on OC2A, not on OC2B. Not handled by library at this time.
         // Toggle,
+
         // Clear, or non-inverting
         Clear,        // Non-PWM
         NonInverting, // Fast PWM
@@ -553,246 +153,23 @@ namespace Timer2 {
         ClearDown,    // Phase correct PWM
     };
 
-    void init(Mode mode, Prescale prescale) {
-        switch(mode) {
-            case Mode::Normal:
-                CLEAR_BIT(TCCR2A, WGM20);
-                CLEAR_BIT(TCCR2A, WGM21);
-                CLEAR_BIT(TCCR2B, WGM22);
-                break;
-            case Mode::CTC:
-                CLEAR_BIT(TCCR2A, WGM20);
-                SET_BIT(TCCR2A, WGM21);
-                CLEAR_BIT(TCCR2B, WGM22);
-                break;
-            case Mode::PWM_Phase_Correct:
-                SET_BIT(TCCR2A, WGM20);
-                CLEAR_BIT(TCCR2A, WGM21);
-                CLEAR_BIT(TCCR2B, WGM22);
-                break;
-            case Mode::PWM_Fast:
-                SET_BIT(TCCR2A, WGM20);
-                SET_BIT(TCCR2A, WGM21);
-                CLEAR_BIT(TCCR2B, WGM22);
-                break;
-        }
-
-        switch(prescale) {
-            case Prescale::None:
-                SET_BIT(TCCR2B, CS20);
-                CLEAR_BIT(TCCR2B, CS21);
-                CLEAR_BIT(TCCR2B, CS22);
-                break;
-            case Prescale::P8:
-                CLEAR_BIT(TCCR2B, CS20);
-                SET_BIT(TCCR2B, CS21);
-                CLEAR_BIT(TCCR2B, CS22);
-                break;
-            case Prescale::P32:
-                SET_BIT(TCCR2B, CS20);
-                SET_BIT(TCCR2B, CS21);
-                CLEAR_BIT(TCCR2B, CS22);
-                break;
-            case Prescale::P64:
-                CLEAR_BIT(TCCR2B, CS20);
-                CLEAR_BIT(TCCR2B, CS21);
-                SET_BIT(TCCR2B, CS22);
-                break;
-        }
-    }
-
-    void set_count(uint8_t new_count) {
-        TCNT2 = new_count;
-    }
-
-    uint8_t get_count() {
-        return TCNT2;
-    }
-
-    void set_compare_match_PB3(CompareMatch compare_match) {
-        switch(compare_match) {
-            case CompareMatch::Clear:
-            case CompareMatch::NonInverting:
-            case CompareMatch::ClearUp:
-                CLEAR_BIT(TCCR2A, COM2A0);
-                SET_BIT(TCCR2A, COM2A1);           
-                break;
-            case CompareMatch::Set:
-            case CompareMatch::Inverting:
-            case CompareMatch::ClearDown:
-                SET_BIT(TCCR2A, COM2A0);
-                SET_BIT(TCCR2A, COM2A1);  
-                break;
-        }
-    }
-
-    void set_compare_match_PIN11(CompareMatch compare_match) {
-        set_compare_match_PB3(compare_match);
-    }
-
-    void set_OCR2A(uint8_t new_value) {
-        OCR2A = new_value;
-    }
-
-    uint8_t get_OCR2A() {
-        return OCR2A;
-    }
-
-    void set_duty_cycle_PB3(uint8_t duty) {
-        // We have to special case this for the case of 0 duty, see last  2 paragraphs of section
-        // 18.7.3 on the data sheet.
-        static uint8_t old_duty = 0;
-
-        // Turn it off for special case of 0
-        if( duty == 0) CLEAR_BIT(DDRB, PB3);
-
-        // If it was 0, turn it back on
-        else if( duty != 0 && old_duty == 0) SET_BIT(DDRB, PB3);
-        
-        // Remember old value
-        old_duty = OCR2A;
-
-        // Set the duty
-        OCR2A = duty;
-    }
-
-    void set_duty_cycle_PIN11(uint8_t duty) {
-        set_duty_cycle_PB3(duty);
-    }
-
-    uint8_t get_duty_cycle_PB3() {
-        return get_OCR2A();
-    }
-
-    void set_compare_match_PD3(CompareMatch compare_match) {
-        switch(compare_match) {
-            case CompareMatch::Clear:
-            case CompareMatch::NonInverting:
-            case CompareMatch::ClearUp:
-                CLEAR_BIT(TCCR2A, COM2B0);
-                SET_BIT(TCCR2A, COM2B1);           
-                break;
-            case CompareMatch::Set:
-            case CompareMatch::Inverting:
-            case CompareMatch::ClearDown:
-                SET_BIT(TCCR2A, COM2B0);
-                SET_BIT(TCCR2A, COM2B1);  
-                break;
-        }
-    }
-
-    void set_compare_match_PIN03(CompareMatch compare_match) {
-        set_compare_match_PD3(compare_match);
-    }
-
-    void set_OCR2B(uint8_t new_value) {
-        OCR2B = new_value;
-    }
-
-    uint8_t get_OCR2B() {
-        return OCR2B;
-    }
-
-    void set_duty_cycle_PD3(uint8_t duty) {
-        // We have to special case this for the case of 0 duty, see last  2 paragraphs of section
-        // 18.7.3 on the data sheet.
-        static uint8_t old_duty = 0;
-
-        // Turn it off for special case of 0
-        if( duty == 0) CLEAR_BIT(DDRD, PD3);
-
-        // If it was 0, turn it back on
-        else if( duty != 0 && old_duty == 0) SET_BIT(DDRD, PD3);
-        
-        // Remember old value
-        old_duty = OCR2B;
-
-        // Set the duty
-        OCR2B = duty;
-    }
-
-    uint8_t get_duty_cycle_PD3() {
-        return get_OCR2B();
-    }
-
-    void set_duty_cycle_PIN03(uint8_t duty) {
-        set_duty_cycle_PD3(duty);
-    }
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-void fast_pwm_init_timer1_8bit(void)
-{
-    //
-    // Set up the Timer/Counter Control Registers for TIMER1
-    //
-
-    // Set the prescaler to no prescaling.
-    TCCR1B |= (1 << CS10);
-
-    // Set for fast PWM 8-bit
-    TCCR1A |= (1 << WGM10);
-    TCCR1B |= (1<< WGM12);
-
-    // Set for non-inverted mode on both the A and B outputs.
-    TCCR1A |= (1<<COM1A1) | (1 << COM1B1); 
-}
-
-//
-// PWM on PB1 pin, PIN09 on the arduino board
-//
-
-void fast_pwm_init_8bit_PB1(void)
-{
-    // This one uses TIMER1, make sure to call fast_pwm_init_timer1_8bit()
-
-    // Set up output.
-    DDRB |= (1<<PB1);
-
-    // Initialize to 0% duty cycle
-    OCR1A = 0;
-}
-
-void set_duty_cycle_8bit_PB1(uint8_t duty)
-{
-    OCR1A = duty;
-}
-
-void set_duty_cycle_8bit_percent_PB1(float percent)
-{
-    set_duty_cycle_8bit_PB1((int8_t)(255 * percent));
-}
-
-//
-// PWM on PB2 pin, PIN10 on the arduino board
-//
-
-void fast_pwm_init_8bit_PB2(void)
-{
-    // This one uses TIMER1, make sure to call fast_pwm_init_timer1_8bit()
-
-    // Set up output.
-    DDRB |= (1<<PB2);
-
-    // Initialize to 0% duty cycle
-    OCR1B = 0;
-}
-
-void set_duty_cycle_8bit_PB2(uint8_t duty)
-{
-    OCR1B = duty;
-}
-
-void set_duty_cycle_8bit_percent_PB2(float percent)
-{
-    set_duty_cycle_8bit_PB2((int8_t)(255 * percent));
+    void init(Mode mode, Prescale prescale);
+    void set_count(uint8_t new_count);
+    uint8_t get_count();
+    void set_compare_match_PB3(CompareMatch compare_match);
+    void set_compare_match_PIN11(CompareMatch compare_match);
+    void set_OCR2A(uint8_t new_value);
+    uint8_t get_OCR2A();
+    void set_duty_cycle_PB3(uint8_t duty);
+    void set_duty_cycle_PIN11(uint8_t duty);
+    uint8_t get_duty_cycle_PB3();
+    void set_compare_match_PD3(CompareMatch compare_match);
+    void set_compare_match_PIN03(CompareMatch compare_match);
+    void set_OCR2B(uint8_t new_value);
+    uint8_t get_OCR2B();
+    void set_duty_cycle_PD3(uint8_t duty);
+    uint8_t get_duty_cycle_PD3();
+    void set_duty_cycle_PIN03(uint8_t duty);
 }
 
 #endif

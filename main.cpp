@@ -1,33 +1,47 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "timers.h"
+#include "compile_time.h"
+#include "custom_serial.h"
 
 void init (void)
 {
-    // Set PIN12/PB4 as an output
-    DDRB |= (1<<PIN4);
+    serial_ascii_out_init();
+    // Set PIN09/PB1 as an output
+    SET_BIT(DDRB, PB1);
 
-    // Start with LED on
-    PORTB |= (1<<PORTB4);
+    Timer1::init(Timer1::Mode::FastPWM_InputTop, Timer1::Prescale::P8);
+    Timer1::set_compare_match_PIN09(Timer1::CompareMatch::NonInverting); // PB1
+    Timer1::set_frequency(50);
+    Timer1::set_OCR1A(3390);
 }
 
 int main (void)
 {
     init();
+    while(1){
+        printf("MAX      = %u\n", Timer1::get_max());
+        printf("TOP      = %u\n", Timer1::get_top());
+        printf("PRESCALE = %u\n", Timer1::get_prescale());
+        
+        #define MAXT 5100
+        #define MINT 1480
+        #define DELAY 1000
 
-        for(uint16_t i = 0; i < 6000; ++i)
-        {
-            PORTB |= (1<<PORTB4);
-            _delay_ms(10000);
-            PORTB &= ~(1<<PORTB4);
-        }
-        for(uint16_t i = 0; i < 6000; ++i)
-        {
-            PORTB |= (1<<PORTB4);
-            _delay_ms(10);
-            PORTB &= ~(1<<PORTB4);
-        }
+        _delay_ms(DELAY);
+        Timer1::set_OCR1A(MAXT);
+        printf("OCR1A    = %u\n", Timer1::get_OCR1A());
+        
+        _delay_ms(DELAY);
+        Timer1::set_OCR1A((MAXT + MINT) /2);
+        printf("OCR1A    = %u\n", Timer1::get_OCR1A());
+        
+        _delay_ms(DELAY);
+        Timer1::set_OCR1A(MINT);
+        printf("OCR1A    = %u\n\n", Timer1::get_OCR1A());
+    }
         
 }

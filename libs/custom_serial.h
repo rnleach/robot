@@ -120,9 +120,12 @@ char uart_getchar(void)
 //
 // Set up serial streams for ascii
 //
-static FILE serial_out = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
-static FILE serial_in = FDEV_SETUP_STREAM(NULL, uart_getchar, _FDEV_SETUP_READ);
-static FILE serial_inout = FDEV_SETUP_STREAM(uart_putchar, uart_getchar, _FDEV_SETUP_RW);
+// static FILE serial_out = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
+// static FILE serial_in = FDEV_SETUP_STREAM(NULL, uart_getchar, _FDEV_SETUP_READ);
+// static FILE serial_inout = FDEV_SETUP_STREAM(uart_putchar, uart_getchar, _FDEV_SETUP_RW);
+static FILE *serial_out = fdevopen(uart_putchar, NULL);
+// static FILE *serial_in = fdevopen(NULL, uart_getchar);
+// static FILE *serial_inout = fdevopen(uart_putchar, uart_getchar);
 
 //
 // Set up registers
@@ -143,45 +146,45 @@ void serial_binary_out_init(void)
     UCSR0B = (1<<TXEN0);
 }
 
-void serial_binary_in_init(void)
-{
-    set_baud_rate();
+// void serial_binary_in_init(void)
+// {
+//     set_baud_rate();
 
-    // Enable receive
-    UCSR0B = (1<<RXEN0);
-}
+//     // Enable receive
+//     UCSR0B = (1<<RXEN0);
+// }
 
-void serial_binary_inout_init(void)
-{
-    set_baud_rate();
+// void serial_binary_inout_init(void)
+// {
+//     set_baud_rate();
 
-    // Enable receive and transmit
-    UCSR0B = (1<<RXEN0)|(1<<TXEN0);
-}
+//     // Enable receive and transmit
+//     UCSR0B = (1<<RXEN0)|(1<<TXEN0);
+// }
 
 void serial_ascii_out_init(void)
 {
     serial_binary_out_init();
 
     // send stdout to serial
-    stdout = &serial_out;
+    stdout = serial_out;
 }
 
-void serial_ascii_in_init(void)
-{
-    serial_binary_in_init();
+// void serial_ascii_in_init(void)
+// {
+//     serial_binary_in_init();
     
-    // redirect serial_in to stdin
-    stdin = &serial_in;
-}
+//     // redirect serial_in to stdin
+//     stdin = &serial_in;
+// }
 
-void serial_ascii_inout_init(void)
-{
-    serial_binary_inout_init();
+// void serial_ascii_inout_init(void)
+// {
+//     serial_binary_inout_init();
 
-    // redirect stdin and stdou
-    stdout = &serial_inout;
-    stdin = &serial_inout;
-}
+//     // redirect stdin and stdou
+//     stdout = &serial_inout;
+//     stdin = &serial_inout;
+// }
 
 #endif

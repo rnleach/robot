@@ -49,13 +49,14 @@ UPLOADER_FLAGS= -F -V -c arduino -p $(BOARD) -P $(DEVICE) -b $(BAUD_RATE_UPLOAD)
 #
 # Header files
 #
-HDRS =$(wildcard ./*.h) 
+HDRS = $(wildcard ./*.h) 
 HDRS += $(wildcard ./libs/*.h)
 
 #
 # Source files
 #
-SRCS=$(wildcard ./*.cpp)
+SRCS = $(wildcard ./*.cpp)
+SRCS += $(wildcard ./libs/*.cpp)
 
 #
 # Print some info
@@ -97,4 +98,4 @@ $(PROG): $(PROG).hex
 	chmod 0775 serial_monitor.sh
 
 clean:
-	- rm *.o *.hex *.elf serial_monitor.sh
+	- rm *.o *.hex *.elf ./libs/*.o serial_monitor.sh
