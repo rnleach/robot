@@ -19,7 +19,22 @@ BOARD_LOWER_CASE=atmega328p
 #
 # Serial Connection info for uploader
 #
-DEVICE=/dev/ttyACM0
+ifeq ($(OS),Windows_NT)
+    $(info OS is $(OS) and is not configured yet.)
+	MY_OS = $(OS)
+else
+    UNAME_S := $(shell uname -s)
+	MY_OS = $(UNAME_S)
+    ifeq ($(UNAME_S),Linux)
+        DEVICE=/dev/ttyACM0
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        DEVICE=/dev/tty.usbmodemfd1311
+    endif
+endif
+$(info                      )
+$(info OS is $(MY_OS)       )
+$(info $$DEVICE is ${DEVICE})
 BAUD_RATE_UPLOAD=115200
 
 #
@@ -61,6 +76,7 @@ SRCS += $(wildcard ./libs/*.cpp)
 #
 # Print some info
 #
+$(info                  )
 $(info $$SRCS is ${SRCS})
 $(info $$HDRS is ${HDRS})
 $(info                  )
@@ -94,8 +110,9 @@ $(PROG).hex: verify
 #
 $(PROG): $(PROG).hex
 	$(UPLOADER) $(UPLOADER_FLAGS) flash:w:$(PROG).hex
-	echo "clear && stty -F $(DEVICE) $(SERIAL_BAUD_RATE) && jpnevulator --ascii --tty=$(DEVICE) --read" > serial_monitor.sh
+#	echo "clear && stty -F $(DEVICE) $(SERIAL_BAUD_RATE) && jpnevulator --ascii --tty=$(DEVICE) --read" > serial.sh
+	echo "clear && screen $(DEVICE) $(SERIAL_BAUD_RATE)" > serial.sh
 	chmod 0775 serial_monitor.sh
 
 clean:
-	- rm *.o *.hex *.elf ./libs/*.o serial_monitor.sh
+	- rm *.o *.hex *.elf ./libs/*.o serial.sh
