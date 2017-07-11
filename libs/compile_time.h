@@ -12,12 +12,15 @@ Author: Ryan Leach
 #define STRINGIFY(s) STRINGIFY_(s)
 #define STRINGIFY_(s) #s
 
-// #define TEST_VALUE 0XAF
-// #pragma message ("\n\nput message here " STRINGIFY(TEST_VALUE))
-// #pragma message ("\n\nput message here " STRINGIFY(_CUSTOM_SERIAL_H_))
-
 // Set and clear bits in a register.
 #define SET_BIT(register, bit) ((register) |= (1<<(bit)))
 #define CLEAR_BIT(register, bit) ((register) &= ~(1<<(bit)))
+
+// Constant for the processor clock speed, should be overridden with -D CFLAG in the makefile.
+#ifndef F_CPU
+#   define F_CPU 16000000UL
+#   pragma message "\n\n     WARNING: DEFAULT F_CPU OF " STRINGIFY(F_CPU) " USED FOR CRYSTAL\n" \
+                       "     FREQUENCY. OVERRIDE WITH COMPILER OPTION IF NEEDED.\n\n"
+#endif
 
 #endif

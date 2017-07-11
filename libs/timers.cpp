@@ -1,7 +1,8 @@
 #include "timers.h"
 
 namespace Timer0 {
-    void init(Mode mode, Prescale prescale) {
+
+    void set_mode(Mode mode) {
         switch(mode) {
             case Mode::Normal:
                 CLEAR_BIT(TCCR0A, WGM00);
@@ -24,7 +25,9 @@ namespace Timer0 {
                 CLEAR_BIT(TCCR0B, WGM02);
                 break;
         }
+    }
 
+    void set_prescaler(Prescale prescale) {
         switch(prescale) {
             case Prescale::None:
                 SET_BIT(TCCR0B, CS00);
@@ -62,7 +65,7 @@ namespace Timer0 {
         return TCNT0;
     }
 
-    void set_compare_match_PD6(CompareMatch compare_match) {
+    void set_compare_match_Ch_A(CompareMatch compare_match) {
         switch(compare_match) {
             case CompareMatch::Clear:
             case CompareMatch::NonInverting:
@@ -79,8 +82,12 @@ namespace Timer0 {
         }
     }
 
+    void set_compare_match_PD6(CompareMatch compare_match) {
+        set_compare_match_Ch_A(compare_match);
+    }
+
     void set_compare_match_PIN06(CompareMatch compare_match) {
-        set_compare_match_PD6(compare_match);
+        set_compare_match_Ch_A(compare_match);
     }
 
     void set_OCR0A(uint8_t new_value) {
@@ -91,7 +98,7 @@ namespace Timer0 {
         return OCR0A;
     }
 
-    void set_duty_cycle_PD6(uint8_t duty) {
+    void set_duty_cycle_Ch_A(uint8_t duty) {
         // We have to special case this for the case of 0 duty, see last  2 paragraphs of section
         // 15.7.3 on the data sheet.
         static uint8_t old_duty = 0;
@@ -109,15 +116,27 @@ namespace Timer0 {
         OCR0A = duty;
     }
 
-    void set_duty_cycle_PIN06(uint8_t duty) {
-        set_duty_cycle_PD6(duty);
+    void set_duty_cycle_PD6(uint8_t duty) {
+        set_duty_cycle_Ch_A(duty);
     }
 
-    uint8_t get_duty_cycle_PD6() {
+    void set_duty_cycle_PIN06(uint8_t duty) {
+        set_duty_cycle_Ch_A(duty);
+    }
+
+    uint8_t get_duty_cycle_Ch_A(){
         return get_OCR0A();
     }
 
-    void set_compare_match_PD5(CompareMatch compare_match) {
+    uint8_t get_duty_cycle_PD6(){
+        return get_OCR0A();
+    }
+
+    uint8_t get_duty_cycle_PIN06(){
+        return get_OCR0A();
+    }
+
+    void set_compare_match_Ch_B(CompareMatch compare_match) {
         switch(compare_match) {
             case CompareMatch::Clear:
             case CompareMatch::NonInverting:
@@ -134,8 +153,12 @@ namespace Timer0 {
         }
     }
 
+    void set_compare_match_PD5(CompareMatch compare_match) {
+        set_compare_match_Ch_B(compare_match);
+    }
+
     void set_compare_match_PIN05(CompareMatch compare_match) {
-        set_compare_match_PD5(compare_match);
+        set_compare_match_Ch_B(compare_match);
     }
 
     void set_OCR0B(uint8_t new_value) {
@@ -146,7 +169,7 @@ namespace Timer0 {
         return OCR0B;
     }
 
-    void set_duty_cycle_PD5(uint8_t duty) {
+    void set_duty_cycle_Ch_B(uint8_t duty) {
         // We have to special case this for the case of 0 duty, see last  2 paragraphs of section
         // 15.7.3 on the data sheet.
         static uint8_t old_duty = 0;
@@ -164,12 +187,24 @@ namespace Timer0 {
         OCR0B = duty;
     }
 
+    void set_duty_cycle_PD5(uint8_t duty) {
+        set_duty_cycle_Ch_B(duty);
+    }
+
+    void set_duty_cycle_PIN05(uint8_t duty) {
+        set_duty_cycle_Ch_B(duty);
+    }
+
+    uint8_t get_duty_cycle_Ch_B() {
+        return get_OCR0B();
+    }
+
     uint8_t get_duty_cycle_PD5() {
         return get_OCR0B();
     }
 
-    void set_duty_cycle_PIN05(uint8_t duty) {
-        set_duty_cycle_PD5(duty);
+    uint8_t get_duty_cycle_PIN05() {
+        return get_OCR0B();
     }
 }
 
@@ -178,11 +213,6 @@ namespace Timer1 {
     // Cache the state of the Timer1 module
     static Mode currentMode_;
     static Prescale currentPrescale_;
-
-    void init(Mode mode, Prescale prescale) {
-        set_mode(mode);
-        set_prescaler(prescale);
-    }
 
     void set_mode(Mode mode) {
         switch(mode) {
@@ -440,8 +470,10 @@ namespace Timer1 {
         else                                                      set_prescaler(Prescale::P1024);
 
         // Calculate Top
-        uint16_t top = F_CPU / static_cast<uint16_t>(currentPrescale_) / hertz - 1;
-        
+        uint16_t top = F_CPU / static_cast<uint16_t>(currentPrescale_) / fast_or_phase_factor / hertz;
+        if((currentMode_ == Mode::FastPWM_InputTop || currentMode_ == Mode::FastPWM_OutputTop) && top > 0)
+            top -= 1;
+
         set_top(top);
     }
 
@@ -459,7 +491,7 @@ namespace Timer1 {
         return value;
     }
 
-    void set_duty_cycle_PB1(uint16_t newDuty) { 
+    void set_duty_cycle_Ch_A(uint16_t newDuty) { 
         // We have to special case this for the case of 0 duty, see last  2 paragraphs of section
         // 16.9.3 on the data sheet.
         static uint16_t oldDuty = 0;
@@ -477,8 +509,16 @@ namespace Timer1 {
         set_OCR1A(newDuty);
     }
 
+    void set_duty_cycle_PB1(uint16_t newDuty) { 
+        set_duty_cycle_Ch_A(newDuty);
+    }
+
     void set_duty_cycle_PIN09(uint16_t newDuty) { 
-        set_duty_cycle_PB1(newDuty);
+        set_duty_cycle_Ch_A(newDuty);
+    }
+
+    uint16_t get_duty_cycle_Ch_A() { 
+        return get_OCR1A();
     }
 
     uint16_t get_duty_cycle_PB1() { 
@@ -486,10 +526,10 @@ namespace Timer1 {
     }
 
     uint16_t get_duty_cycle_PIN09() { 
-        return get_duty_cycle_PB1();
+        return get_OCR1A();
     }
 
-    void set_compare_match_PB1(CompareMatch compareMatch) {
+    void set_compare_match_Ch_A(CompareMatch compareMatch) {
         switch(compareMatch) {
             case CompareMatch::Clear:
             case CompareMatch::NonInverting:
@@ -506,8 +546,12 @@ namespace Timer1 {
         }
     }
 
+    void set_compare_match_PB1(CompareMatch compareMatch) {
+        set_compare_match_Ch_A(compareMatch);
+    }
+
     void set_compare_match_PIN09(CompareMatch compareMatch) {
-        set_compare_match_PB1(compareMatch);
+        set_compare_match_Ch_A(compareMatch);
     }
 
     void set_OCR1B(uint16_t newValue) {
@@ -524,7 +568,7 @@ namespace Timer1 {
         return value;
     }
 
-    void set_duty_cycle_PB2(uint16_t newDuty) { 
+    void set_duty_cycle_Ch_B(uint16_t newDuty) { 
         // We have to special case this for the case of 0 duty, see last  2 paragraphs of section
         // 16.9.3 on the data sheet.
         static uint16_t oldDuty = 0;
@@ -542,8 +586,16 @@ namespace Timer1 {
         set_OCR1B(newDuty);
     }
 
+    void set_duty_cycle_PB2(uint16_t newDuty) { 
+        set_duty_cycle_Ch_B(newDuty);
+    }
+
     void set_duty_cycle_PIN10(uint16_t newDuty) { 
-        set_duty_cycle_PB2(newDuty);
+        set_duty_cycle_Ch_B(newDuty);
+    }
+
+    uint16_t get_duty_cycle_Ch_B() { 
+        return get_OCR1B();
     }
 
     uint16_t get_duty_cycle_PB2() { 
@@ -551,13 +603,14 @@ namespace Timer1 {
     }
 
     uint16_t get_duty_cycle_PIN10() { 
-        return get_duty_cycle_PB2();
+        return get_OCR1B();
     }
 }
 
 namespace Timer2 {
-    
-    void init(Mode mode, Prescale prescale) {
+
+    // Timer specific (applies to both channels A and B)
+    void set_mode(Mode mode) {
         switch(mode) {
             case Mode::Normal:
                 CLEAR_BIT(TCCR2A, WGM20);
@@ -580,7 +633,9 @@ namespace Timer2 {
                 CLEAR_BIT(TCCR2B, WGM22);
                 break;
         }
+    }
 
+    void set_prescale(Prescale prescale) {
         switch(prescale) {
             case Prescale::None:
                 SET_BIT(TCCR2B, CS20);
@@ -613,7 +668,8 @@ namespace Timer2 {
         return TCNT2;
     }
 
-    void set_compare_match_PB3(CompareMatch compare_match) {
+    // Channel A
+    void set_compare_match_Ch_A(CompareMatch compare_match) {
         switch(compare_match) {
             case CompareMatch::Clear:
             case CompareMatch::NonInverting:
@@ -630,8 +686,12 @@ namespace Timer2 {
         }
     }
 
+    void set_compare_match_PB3(CompareMatch compare_match) {
+        set_compare_match_Ch_A(compare_match);
+    }
+
     void set_compare_match_PIN11(CompareMatch compare_match) {
-        set_compare_match_PB3(compare_match);
+        set_compare_match_Ch_A(compare_match);
     }
 
     void set_OCR2A(uint8_t new_value) {
@@ -642,7 +702,7 @@ namespace Timer2 {
         return OCR2A;
     }
 
-    void set_duty_cycle_PB3(uint8_t duty) {
+    void set_duty_cycle_Ch_A(uint8_t duty) {
         // We have to special case this for the case of 0 duty, see last  2 paragraphs of section
         // 18.7.3 on the data sheet.
         static uint8_t old_duty = 0;
@@ -660,15 +720,29 @@ namespace Timer2 {
         OCR2A = duty;
     }
 
+    void set_duty_cycle_PB3(uint8_t duty) {
+        set_duty_cycle_Ch_A(duty);
+    }
+
     void set_duty_cycle_PIN11(uint8_t duty) {
-        set_duty_cycle_PB3(duty);
+        set_duty_cycle_Ch_A(duty);
+    }
+
+    uint8_t get_duty_cycle_Ch_A() {
+        return get_OCR2A();
     }
 
     uint8_t get_duty_cycle_PB3() {
         return get_OCR2A();
     }
+    
+    uint8_t get_duty_cycle_PIN11() {
+        return get_OCR2A();
+    }
+    
 
-    void set_compare_match_PD3(CompareMatch compare_match) {
+    // Channel B
+    void set_compare_match_Ch_B(CompareMatch compare_match) {
         switch(compare_match) {
             case CompareMatch::Clear:
             case CompareMatch::NonInverting:
@@ -685,8 +759,12 @@ namespace Timer2 {
         }
     }
 
+    void set_compare_match_PD3(CompareMatch compare_match) {
+        set_compare_match_Ch_B(compare_match);
+    }
+
     void set_compare_match_PIN03(CompareMatch compare_match) {
-        set_compare_match_PD3(compare_match);
+        set_compare_match_Ch_B(compare_match);
     }
 
     void set_OCR2B(uint8_t new_value) {
@@ -697,7 +775,7 @@ namespace Timer2 {
         return OCR2B;
     }
 
-    void set_duty_cycle_PD3(uint8_t duty) {
+    void set_duty_cycle_Ch_B(uint8_t duty) {
         // We have to special case this for the case of 0 duty, see last  2 paragraphs of section
         // 18.7.3 on the data sheet.
         static uint8_t old_duty = 0;
@@ -715,11 +793,24 @@ namespace Timer2 {
         OCR2B = duty;
     }
 
+    void set_duty_cycle_PD3(uint8_t duty) {
+        set_duty_cycle_Ch_B(duty);
+    }
+
+    void set_duty_cycle_PIN03(uint8_t duty){
+        set_duty_cycle_Ch_B(duty);
+    }
+
+    uint8_t get_duty_cycle_Ch_B() {
+        return get_OCR2B();
+    }
+
     uint8_t get_duty_cycle_PD3() {
         return get_OCR2B();
     }
 
-    void set_duty_cycle_PIN03(uint8_t duty) {
-        set_duty_cycle_PD3(duty);
+    uint8_t get_duty_cycle_PIN03()
+    {
+        return get_OCR2B();
     }
 }

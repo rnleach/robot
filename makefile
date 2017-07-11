@@ -112,7 +112,7 @@ $(PROG): $(PROG).hex
 	$(UPLOADER) $(UPLOADER_FLAGS) flash:w:$(PROG).hex
 #	echo "clear && stty -F $(DEVICE) $(SERIAL_BAUD_RATE) && jpnevulator --ascii --tty=$(DEVICE) --read" > serial.sh
 	echo "clear && screen $(DEVICE) $(SERIAL_BAUD_RATE)" > serial.sh
-	chmod 0775 serial_monitor.sh
+	chmod 0775 serial.sh
 
 clean:
 	- rm *.o *.hex *.elf ./libs/*.o serial.sh

@@ -7,17 +7,14 @@ A customized header only library for input/output via the serial port with avr-g
 
 Author: Ryan Leach
 **************************************************************************************************/
+
+// FIXME: Break this into a header and a cpp file.
+
 #include <avr/io.h>
 #include <stdio.h>
 #include "compile_time.h"
 
-// Constants for baud rate calculation.
-// These values can be overridden with the -D CFLAG in the makefile.
-#ifndef F_CPU
-#   define F_CPU 16000000UL
-#   pragma message "\n\n     WARNING: DEFAULT F_CPU OF " STRINGIFY(F_CPU) " USED FOR CRYSTAL\n" \
-                       "     FREQUENCY. OVERRIDE WITH COMPILER OPTION IF NEEDED.\n\n"
-#endif
+// Constant for the BAUD rate, define in make file with -D CFLAG.
 #ifndef BAUD
 #   define BAUD 9600
 #   pragma message "\n\n     WARNING: DEFAULT BAUD OF " STRINGIFY(BAUD) " USED FOR BAUD\n" \
@@ -101,31 +98,15 @@ uint8_t usart_receive(void)
 int uart_putchar(char c, FILE *stream)
 {
     if (c == '\n') uart_putchar('\r', stream);
-
-    // reinterpret cast
-    uint8_t data = *(uint8_t*)(&c);
-    usart_transmit(data);
+    usart_transmit(c);
 
     return 0;
 }
 
-char uart_getchar(void)
+int uart_getchar(FILE *stream)
 {
-    uint8_t data = usart_receive();
-
-    // reinterpret cast from uint8_t to character (exactly the same? Is this a no-op?)
-    return *(char*)(&data);
+    return usart_receive();
 }
-
-//
-// Set up serial streams for ascii
-//
-// static FILE serial_out = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
-// static FILE serial_in = FDEV_SETUP_STREAM(NULL, uart_getchar, _FDEV_SETUP_READ);
-// static FILE serial_inout = FDEV_SETUP_STREAM(uart_putchar, uart_getchar, _FDEV_SETUP_RW);
-static FILE *serial_out = fdevopen(uart_putchar, NULL);
-// static FILE *serial_in = fdevopen(NULL, uart_getchar);
-// static FILE *serial_inout = fdevopen(uart_putchar, uart_getchar);
 
 //
 // Set up registers
@@ -146,45 +127,46 @@ void serial_binary_out_init(void)
     UCSR0B = (1<<TXEN0);
 }
 
-// void serial_binary_in_init(void)
-// {
-//     set_baud_rate();
+void serial_binary_in_init(void)
+{
+    set_baud_rate();
 
-//     // Enable receive
-//     UCSR0B = (1<<RXEN0);
-// }
+    // Enable receive
+    UCSR0B = (1<<RXEN0);
+}
 
-// void serial_binary_inout_init(void)
-// {
-//     set_baud_rate();
+void serial_binary_inout_init(void)
+{
+    set_baud_rate();
 
-//     // Enable receive and transmit
-//     UCSR0B = (1<<RXEN0)|(1<<TXEN0);
-// }
+    // Enable receive and transmit
+    UCSR0B = (1<<RXEN0)|(1<<TXEN0);
+}
 
 void serial_ascii_out_init(void)
 {
     serial_binary_out_init();
 
     // send stdout to serial
-    stdout = serial_out;
+    stdout = fdevopen(uart_putchar, NULL);
 }
 
-// void serial_ascii_in_init(void)
-// {
-//     serial_binary_in_init();
+void serial_ascii_in_init(void)
+{
+    serial_binary_in_init();
     
-//     // redirect serial_in to stdin
-//     stdin = &serial_in;
-// }
+    // redirect serial_in to stdin
+    stdin = fdevopen(NULL, uart_getchar);
+}
 
-// void serial_ascii_inout_init(void)
-// {
-//     serial_binary_inout_init();
+void serial_ascii_inout_init(void)
+{
+    serial_binary_inout_init();
 
-//     // redirect stdin and stdou
-//     stdout = &serial_inout;
-//     stdin = &serial_inout;
-// }
+    // redirect stdin and stdout
+    FILE *serial_inout = fdevopen(uart_putchar, uart_getchar);
+    stdout = serial_inout;
+    stdin = serial_inout;
+}
 
 #endif

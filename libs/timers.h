@@ -1,9 +1,9 @@
-#ifndef CUSTOM_PWM_H_
-#define CUSTOM_PWM_H_
+#ifndef TIMERS_H_
+#define TIMERS_H_
 /**************************************************************************************************
-pwm.h
+timers.h
 
-A customized header only library for setting up and using PWM with avr-gcc/avr-g++.
+A customized header only library for setting up and using timers with avr-gcc/avr-g++.
 
 Author: Ryan Leach
 **************************************************************************************************/
@@ -41,23 +41,38 @@ namespace Timer0 {
         ClearDown,    // Phase correct PWM
     };
 
-    void init(Mode mode, Prescale prescale);
+    // Timer specific (applies to both channels A and B)
+    void set_mode(Mode mode);
+    void set_prescale(Prescale prescale);
     void set_count(uint8_t new_count);
     uint8_t get_count();
+    // TODO: Add set_frequency, which will only work in CTC mode, until the other modes are added.
+
+    // Channel A
+    void set_compare_match_Ch_A(CompareMatch compare_match);
     void set_compare_match_PD6(CompareMatch compare_match);
     void set_compare_match_PIN06(CompareMatch compare_match);
     void set_OCR0A(uint8_t new_value);
     uint8_t get_OCR0A();
+    void set_duty_cycle_Ch_A(uint8_t duty);
     void set_duty_cycle_PD6(uint8_t duty);
     void set_duty_cycle_PIN06(uint8_t duty);
+    uint8_t get_duty_cycle_Ch_A();
     uint8_t get_duty_cycle_PD6();
+    uint8_t get_duty_cycle_PIN06();
+
+    // Channel B
+    void set_compare_match_Ch_B(CompareMatch compare_match);
     void set_compare_match_PD5(CompareMatch compare_match);
     void set_compare_match_PIN05(CompareMatch compare_match);
     void set_OCR0B(uint8_t new_value);
     uint8_t get_OCR0B();
+    void set_duty_cycle_Ch_B(uint8_t duty);
     void set_duty_cycle_PD5(uint8_t duty);
-    uint8_t get_duty_cycle_PD5();
     void set_duty_cycle_PIN05(uint8_t duty);
+    uint8_t get_duty_cycle_Ch_B();
+    uint8_t get_duty_cycle_PD5();
+    uint8_t get_duty_cycle_PIN05();
 }
 
 namespace Timer1 {
@@ -97,7 +112,7 @@ namespace Timer1 {
         ClearDown,    // Phase correct PWM
     };
 
-    void init(Mode mode, Prescale prescale);
+    // Timer specific (applies to both channels A and B)
     void set_mode(Mode mode);
     void set_prescaler(Prescale newPrescale);
     uint8_t get_prescale();
@@ -105,20 +120,30 @@ namespace Timer1 {
     uint16_t get_top();
     void set_top(uint16_t newTop);
     void set_frequency(uint16_t hertz);
+
+    // Channel A
     void set_OCR1A(uint16_t newValue);
     uint16_t get_OCR1A();
+    void set_duty_cycle_Ch_A(uint16_t newDuty);
     void set_duty_cycle_PB1(uint16_t newDuty);
     void set_duty_cycle_PIN09(uint16_t newDuty);
+    uint16_t get_duty_cycle_Ch_A();
     uint16_t get_duty_cycle_PB1();
     uint16_t get_duty_cycle_PIN09();
+    void set_compare_match_Ch_A(CompareMatch compareMatch);
     void set_compare_match_PB1(CompareMatch compareMatch);
     void set_compare_match_PIN09(CompareMatch compareMatch);
+
+    // Channel B
     void set_OCR1B(uint16_t newValue);
     uint16_t get_OCR1B();
+    void set_duty_cycle_Ch_B(uint16_t newDuty);
     void set_duty_cycle_PB2(uint16_t newDuty);
     void set_duty_cycle_PIN10(uint16_t newDuty);
+    uint16_t get_duty_cycle_Ch_B();
     uint16_t get_duty_cycle_PB2();
     uint16_t get_duty_cycle_PIN10();
+    void set_compare_match_Ch_B(CompareMatch compareMatch);
     void set_compare_match_PB2(CompareMatch compareMatch);
     void set_compare_match_PIN10(CompareMatch compareMatch);
 };
@@ -153,23 +178,38 @@ namespace Timer2 {
         ClearDown,    // Phase correct PWM
     };
 
-    void init(Mode mode, Prescale prescale);
+    // Timer specific (applies to both channels A and B)
+    void set_mode(Mode mode);
+    void set_prescale(Prescale prescale);
     void set_count(uint8_t new_count);
     uint8_t get_count();
+    // TODO: Add set_frequency, which will only work in CTC mode, until the other modes are added.
+
+    // Channel A
+    void set_compare_match_Ch_A(CompareMatch compare_match);
     void set_compare_match_PB3(CompareMatch compare_match);
     void set_compare_match_PIN11(CompareMatch compare_match);
     void set_OCR2A(uint8_t new_value);
     uint8_t get_OCR2A();
+    void set_duty_cycle_Ch_A(uint8_t duty);
     void set_duty_cycle_PB3(uint8_t duty);
     void set_duty_cycle_PIN11(uint8_t duty);
+    uint8_t get_duty_cycle_Ch_A();
     uint8_t get_duty_cycle_PB3();
+    uint8_t get_duty_cycle_PIN11();
+
+    // Channel B
+    void set_compare_match_Ch_B(CompareMatch compare_match);
     void set_compare_match_PD3(CompareMatch compare_match);
     void set_compare_match_PIN03(CompareMatch compare_match);
     void set_OCR2B(uint8_t new_value);
     uint8_t get_OCR2B();
+    void set_duty_cycle_Ch_B(uint8_t duty);
     void set_duty_cycle_PD3(uint8_t duty);
-    uint8_t get_duty_cycle_PD3();
     void set_duty_cycle_PIN03(uint8_t duty);
+    uint8_t get_duty_cycle_Ch_B();
+    uint8_t get_duty_cycle_PD3();
+    uint8_t get_duty_cycle_PIN03();
 }
 
 #endif
