@@ -17,8 +17,11 @@ demonstrate programming principles like encapsulation.
 ### How to find serial port on linux
 - dmesg | grep tty
 ### How to monitor serial on linux
+- screen (assuming port /dev/ttyUSB0 and baud rate 9600)
+  - screen /dev/ttyUSB0 9600
+  - Press Ctrl + A, \ to quit.
 - cu
-  - cu -l /dev/ttyUSB0 -s 9600  <- Baud Rate
+  - cu -l /dev/ttyUSB0 -s 9600
   - Then in another terminal do ps -ef | grep ttyUSB0 and kill the two processes running cu.
   - This version is good for reading ASCII output as strings.
 - jpnevulator
@@ -28,7 +31,20 @@ demonstrate programming principles like encapsulation.
   - Does not pretty print ASCII
   - Easy to stop with Ctrl-c
   - see "man" entry for more information.
-  - The make file should generate a serial_monitor.sh script for you, just use that.
+- The make file should generate a serial.sh script for you, just use that.
+
+### How to find serial port on mac
+- ls /dev/tty.*
+
+### How to monitor serial on mac
+- screen (assuming port /dev/tty.usbmodemfd1311 and baud rate 9600)
+  - screen /dev/tty.usbmodemfd1311 9600
+  - Press Ctrl + A, \ to quit.
+- cu
+  - cu -l /dev/tty.usbmodemfd1311 -s 9600
+  - Then in another terminal do ps -ef | grep ttyUSB0 and kill the two processes running cu.
+  - This version is good for reading ASCII output as strings.
+- The make file should generate a serial.sh script for you, just use that.
 
 [1]:https://osepp.com/starter-kits/87-osepp-101-robotic-basics-starter
 [2]:https://www.elegoo.com/product/elegoo-uno-project-super-starter-kit/
