@@ -48,6 +48,8 @@ CXXFLAGS = -Ilibs -std=gnu++11 -Os -DF_CPU=$(FREQ) -mmcu=$(BOARD_LOWER_CASE) -DB
 #
 LINK = avr-gcc
 LINK_FLAGS = -mmcu=$(BOARD_LOWER_CASE)
+# float support for printf
+LINK_FLAGS += -Wl,-u,vfprintf -lprintf_flt -lm
 
 #
 # bin utils
