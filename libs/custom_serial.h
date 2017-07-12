@@ -17,7 +17,8 @@ Author: Ryan Leach
 void set_baud_rate(void);
 
 //
-// Initialize serial for Binary input/output. 
+// Initialize serial for Binary input/output. If using ascii init functions they will call these
+// for you.
 //
 void serial_binary_out_init(void);
 void serial_binary_in_init(void);
@@ -31,7 +32,7 @@ void serial_ascii_in_init(void);
 void serial_ascii_inout_init(void);
 
 //
-// send and receive binary data
+// Send and receive binary data
 //
 void usart_transmit( uint8_t data);
 uint8_t usart_receive(void);
