@@ -20,41 +20,68 @@ void init (void)
     Timer1::set_OCR1A(3390);
 }
 
+#define MAXT 5100
+#define MINT 1480
+#define RANGE_DEGREES 180
+#define INCREMENT_DEGREES 30
+#define STEPSIZE ((MAXT - MINT)/(RANGE_DEGREES / INCREMENT_DEGREES))
+#define DELAY 500
+
+void set_position( uint16_t pw_count) {
+    printf("pw_count = %u degrees = %u\n",
+        pw_count, 
+        (uint16_t)((float)(pw_count - MINT) / (MAXT - MINT) * RANGE_DEGREES + 0.05)
+    );
+    Timer1::set_OCR1A(pw_count);
+}
+
+void set_degrees( int8_t angle) {
+    int16_t mapped_angle = angle + 90;
+    if(mapped_angle < 0) mapped_angle = 0;
+
+    uint16_t pw_count = (uint16_t)((float) mapped_angle / (float)(RANGE_DEGREES) * (MAXT - MINT) + 0.5) + MINT;
+    
+    if(pw_count > MAXT) pw_count = MAXT;
+    if(pw_count < MINT) pw_count = MINT;
+
+    printf("angle = %d mapped_angle = %d  pw_count = %u\n",
+        angle,
+        mapped_angle,
+        pw_count
+    );
+    Timer1::set_OCR1A(pw_count);
+}
+
 int main (void)
 {
     init();
     while(1){
-        printf("MAX      = %u\n", Timer1::get_max());
-        printf("TOP      = %u\n", Timer1::get_top());
-        printf("PRESCALE = %u\n", Timer1::get_prescale());
-        
-        #define MAXT 5100
-        #define MINT 1480
-        #define DELAY 1000
+        // printf("MAX      = %u\n", Timer1::get_max());
+        // printf("TOP      = %u\n", Timer1::get_top());
+        // printf("PRESCALE = %u\n", Timer1::get_prescale());
 
-        _delay_ms(DELAY);
-        Timer1::set_OCR1A(MAXT);
-        printf("OCR1A    = %u\n", Timer1::get_OCR1A());
-        
-        _delay_ms(DELAY);
-        Timer1::set_OCR1A((MAXT + MINT) /2);
-        printf("OCR1A    = %u\n", Timer1::get_OCR1A());
-        
-        _delay_ms(DELAY);
-        Timer1::set_OCR1A(MINT);
-        printf("OCR1A    = %u\n", Timer1::get_OCR1A());
+        printf("start count up\n");
+        for(uint16_t pw_count = MINT; pw_count <= MAXT; pw_count += STEPSIZE) {
+            set_position(pw_count);
+            _delay_ms(DELAY);
+        }
 
-        _delay_ms(DELAY);
-        Timer1::set_OCR1A((MAXT + MINT) /2);
-        printf("OCR1A    = %u\n", Timer1::get_OCR1A());
+        printf("start count down\n");
+        for(uint16_t pw_count = MAXT; pw_count >= MINT; pw_count -= STEPSIZE) {
+            set_position(pw_count);
+            _delay_ms(DELAY);
+        }
 
-        uint16_t integer = 0;
-        printf("Enter an integer: ");
-        scanf("%lu", &integer);
-        printf ("\nYou have entered %#x (%u).\n\n",integer,integer);
+        printf("start degrees up\n");
+        for(int8_t angle = -90; angle <= 90; angle += 30) {
+            set_degrees(angle);
+            _delay_ms(DELAY);
+        }
 
-        Timer1::set_OCR1A(integer);
-        printf("OCR1A    = %u\n\n", Timer1::get_OCR1A());
+        printf("start degrees down\n");
+        for(int8_t angle = 90; angle >= -90; angle -= 30) {
+            set_degrees(angle);
+            _delay_ms(DELAY);
+        }
     }
-        
 }
