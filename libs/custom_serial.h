@@ -3,7 +3,7 @@
 /**************************************************************************************************
 custom_serial.h
 
-A customized header only library for input/output via the serial port with avr-gcc/avr-g++.
+A customized library for input/output via the serial port with avr-gcc/avr-g++.
 
 Author: Ryan Leach
 **************************************************************************************************/

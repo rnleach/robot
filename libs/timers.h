@@ -3,7 +3,7 @@
 /**************************************************************************************************
 timers.h
 
-A customized header only library for setting up and using timers with avr-gcc/avr-g++.
+A customized library for setting up and using timers with avr-gcc/avr-g++.
 
 Author: Ryan Leach
 **************************************************************************************************/
