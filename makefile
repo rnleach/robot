@@ -41,7 +41,7 @@ BAUD_RATE_UPLOAD=115200
 # Compiler
 #
 CXX = avr-g++
-CXXFLAGS = -Ilibs -std=gnu++11 -Os -DF_CPU=$(FREQ) -mmcu=$(BOARD_LOWER_CASE) -DBAUD=$(SERIAL_BAUD_RATE)
+CXXFLAGS = -Ilibs -Iproject_libs -std=gnu++11 -Os -DF_CPU=$(FREQ) -mmcu=$(BOARD_LOWER_CASE) -DBAUD=$(SERIAL_BAUD_RATE)
 
 #
 # Linker
@@ -68,12 +68,14 @@ UPLOADER_FLAGS= -F -V -c arduino -p $(BOARD) -P $(DEVICE) -b $(BAUD_RATE_UPLOAD)
 #
 HDRS = $(wildcard ./*.h) 
 HDRS += $(wildcard ./libs/*.h)
+HDRS += $(wildcard ./project_libs/*.h)
 
 #
 # Source files
 #
 SRCS = $(wildcard ./*.cpp)
 SRCS += $(wildcard ./libs/*.cpp)
+SRCS += $(wildcard ./project_libs/*.cpp)
 
 #
 # Print some info
@@ -87,7 +89,7 @@ $(info                  )
 # Object Files
 #
 OBJS=$(subst .cpp,.o,$(SRCS))
-%.o: %.c $(HDRS)
+%.o: %.cpp $(HDRS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 #
@@ -117,4 +119,4 @@ $(PROG): $(PROG).hex
 	chmod 0775 serial.sh
 
 clean:
-	- rm *.o *.hex *.elf ./libs/*.o serial.sh
+	- rm *.o *.hex *.elf ./libs/*.o ./project_libs/*.o serial.sh
