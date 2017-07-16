@@ -211,11 +211,21 @@ namespace Timer0 {
 namespace Timer1 {
 
     // Cache the state of the Timer1 module
-    static Mode currentMode_;
-    static Prescale currentPrescale_;
+    static Mode currentMode_ = Mode::Off;     // Default case during cold start.
+    static Prescale currentPrescale_ = Prescale::None;  // Setting mode will reset prescaler too if needed.
 
     void set_mode(Mode mode) {
+        // If not off, ensure we set the prescaler, since it is used to turn the timer on/off
+        if(mode != Mode::Off) set_prescaler(currentPrescale_);
+
+        // Set the mode
         switch(mode) {
+            case Mode::Off:
+                CLEAR_BIT(TCCR1B, CS10);
+                CLEAR_BIT(TCCR1B, CS11);
+                CLEAR_BIT(TCCR1B, CS12);
+                // Fall through to normal just to reset all these bits to zero like they would be
+                // on a cold start.
             case Mode::Normal:
                 CLEAR_BIT(TCCR1A, WGM10);
                 CLEAR_BIT(TCCR1A, WGM11);
@@ -309,6 +319,14 @@ namespace Timer1 {
         }
 
         currentMode_ = mode;
+    }
+
+    Mode get_mode() {
+        return currentMode_;
+    }
+
+    bool is_on() {
+        return currentMode_ != Mode::Off;
     }
 
     void set_prescaler(Prescale newPrescale) {
@@ -475,6 +493,20 @@ namespace Timer1 {
             top -= 1;
 
         set_top(top);
+    }
+
+    void set_count(uint16_t new_count){
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+            TCNT1 = new_count;
+        }
+    }
+
+    uint16_t get_count(){
+        uint16_t value;
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+            value = TCNT1;
+        }
+        return value;
     }
 
     void set_OCR1A(uint16_t newValue) {

@@ -80,6 +80,7 @@ namespace Timer1 {
     enum class Prescale { None = 1, P8 = 8, P64 = 64, P256 = 256, P1024 = 1024 };
 
     enum class Mode {
+        Off,                        // Timer not running.
         Normal,                     // Just a counter, time
         PhaseCorrectPWM08,          // 8-bit, TOP = 0x00FF
         PhaseCorrectPWM09,          // 9-bit, TOP = 0x01FF
@@ -114,12 +115,16 @@ namespace Timer1 {
 
     // Timer specific (applies to both channels A and B)
     void set_mode(Mode mode);
+    Mode get_mode();
+    bool is_on();
     void set_prescaler(Prescale newPrescale);
     uint8_t get_prescale();
     uint16_t get_max();
     uint16_t get_top();
     void set_top(uint16_t newTop);
     void set_frequency(uint16_t hertz);
+    void set_count(uint16_t new_count);
+    uint16_t get_count();
 
     // Channel A
     void set_OCR1A(uint16_t newValue);
