@@ -11,6 +11,7 @@ Author: Ryan Leach
 #include <util/atomic.h>
 #include "compile_time.h"
 
+// TODO: Make these classes with only static members.
 namespace Timer0 {
     // Predefined prescaler settings for Timer0.
     enum class Prescale { None = 1, P8 = 8, P64 = 64, P256 = 256, P1024 = 1024 };
