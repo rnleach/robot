@@ -26,6 +26,10 @@ void init (void)
 #define STEPSIZE ((MAXT - MINT)/(RANGE_DEGREES / INCREMENT_DEGREES))
 #define DELAY 13
 
+#include "timer.h"
+// global timer 0
+Timer<0> t0;
+
 int main (void)
 {
     init();
