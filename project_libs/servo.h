@@ -12,7 +12,7 @@ Author: Ryan Leach
 #include <stdint.h>
 // #include <stdio.h>
 
-// TODO: templatize this to work with pins
+// TODO: templatize this to work with pins, timers.
 // Currently only works on PIN09.
 class ServoSG90_Pin09 {
     public:
