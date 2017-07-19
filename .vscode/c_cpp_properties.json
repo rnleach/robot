@@ -15,7 +15,8 @@
                     "${workspaceRoot}/*",
                     "/usr/local/Cellar/avr-gcc/6.3.0/avr/include/*",
                     "/usr/local/Cellar/avr-gcc/6.3.0/avr/include/avr/*",
-                    "${workspaceRoot}/libs/*"
+                    "${workspaceRoot}/libs/*",
+                    "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
@@ -36,7 +37,8 @@
                     "${workspaceRoot}/*",
                     "/usr/lib/avr/include/avr/*",
                     "/usr/lib/avr/include/*",
-                    "${workspaceRoot}/libs/*"
+                    "${workspaceRoot}/libs/*",
+                    "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
@@ -55,11 +57,13 @@
             "intelliSenseMode": "msvc-x64",
             "browse": {
                 "path": [
-                    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*"
+                    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*",
+                    "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
             }
         }
-    ]
+    ],
+    "version": 2
 }
