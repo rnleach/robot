@@ -16,6 +16,56 @@ A customized library for setting up and using timers with avr-gcc/avr-g++.
 enum class Timers {T0, T1, T2 };
 
 //
+// Each timer has two channels.
+//
+enum class Channels {A, B};
+
+//
+// Compile time checks for making sure Pins are correctly matched with timers.
+//
+template<Pins P, Timers T>
+struct Pairing {
+    static const bool valid = false;
+    static const Channels channel = Channels::A;
+};
+
+template<>
+struct Pairing<Pins::D06_PWM, Timers::T0> {
+    static const bool valid = true;
+    static const Channels channel = Channels::A;
+};
+
+template<>
+struct Pairing<Pins::D05_PWM, Timers::T0> {
+    static const bool valid = true;
+    static const Channels channel = Channels::B;
+};
+
+template<>
+struct Pairing<Pins::D09_PWM, Timers::T1> {
+    static const bool valid = true;
+    static const Channels channel = Channels::A;
+};
+
+template<>
+struct Pairing<Pins::D10_PWM, Timers::T1> {
+    static const bool valid = true;
+    static const Channels channel = Channels::B;
+};
+
+template<>
+struct Pairing<Pins::D11_PWM, Timers::T2> {
+    static const bool valid = true;
+    static const Channels channel = Channels::A;
+};
+
+template<>
+struct Pairing<Pins::D03_PWM, Timers::T2> {
+    static const bool valid = true;
+    static const Channels channel = Channels::B;
+};
+
+//
 // Size of counter register and output compare registers
 //
 template <Timers T> struct TimerValueType { using ValueType = uint8_t; };
@@ -125,27 +175,20 @@ class Timer {
         static void set_count(typename TimerValueType<TN>::ValueType new_count);
         static typename TimerValueType<TN>::ValueType get_count();
 
-        // Channel A
-        // TODO:
-        static void set_ocrna(typename TimerValueType<TN>::ValueType newValue);
-        // TODO:
-        static void set_compare_match_Ch_A(typename CompareMatchT<TN>::CType compareMatch);
-        // TODO:
-        static typename TimerValueType<TN>::ValueType get_ocrna();
+        // Output compare units
+        template<Channels CH>
+        static void set_ocr(typename TimerValueType<TN>::ValueType newValue);
 
-        // Channel B
-        static void set_ocrnb(typename TimerValueType<TN>::ValueType newValue);
-        // TODO:
-        static void set_compare_match_Ch_B(typename CompareMatchT<TN>::CType compareMatch);
-        // TODO:
-        static typename TimerValueType<TN>::ValueType get_ocrnb();
+        template<Channels CH>
+        static typename TimerValueType<TN>::ValueType get_ocr();
         
-        // Call for each output pin
-        // TODO:
+        // Set mode
+        template<Channels CH>
+        static void set_compare_match(typename CompareMatchT<TN>::CType compareMatch);
+
         template<Pins P>
         void set_duty_cycle(typename TimerValueType<TN>::ValueType newDuty);
 
-        // TODO:
         template<Pins P>
         typename TimerValueType<TN>::ValueType get_duty_cycle();
         
@@ -160,12 +203,13 @@ typename PrescalerT<TN>::PType Timer<TN>::currentPrescale_ = PrescalerT<TN>::PTy
 template<Timers TN>
 typename ModesT<TN>::MType Timer<TN>::currentMode_ = ModesT<TN>::MType::Off;
 
+
 //
 // Implementations ---------------------------------------------------------------------------------
 //
 
 template<> void Timer<Timers::T0>::set_prescaler(typename PrescalerT<Timers::T0>::PType prescale);
-template<> void Timer<Timers::T1>::set_prescaler(typename PrescalerT<Timers::T1>::PType newPrescale);
+template<> void Timer<Timers::T1>::set_prescaler(typename PrescalerT<Timers::T1>::PType prescale);
 template<> void Timer<Timers::T2>::set_prescaler(typename PrescalerT<Timers::T2>::PType prescale);
 
 template<Timers TN>
@@ -244,5 +288,97 @@ void Timer<TN>::set_count(typename TimerValueType<TN>::ValueType new_count) {
 
 template<> 
 void Timer<Timers::T1>::set_count(typename TimerValueType<Timers::T1>::ValueType new_count);
+
+template<>
+template<>
+void Timer<Timers::T0>::set_ocr<Channels::A>(typename TimerValueType<Timers::T0>::ValueType newValue);
+
+template<>
+template<>
+void Timer<Timers::T1>::set_ocr<Channels::A>(typename TimerValueType<Timers::T1>::ValueType newValue);
+
+template<>
+template<>
+void Timer<Timers::T2>::set_ocr<Channels::A>(typename TimerValueType<Timers::T2>::ValueType newValue);
+
+template<>
+template<>
+void Timer<Timers::T0>::set_ocr<Channels::B>(typename TimerValueType<Timers::T0>::ValueType newValue);
+
+template<>
+template<>
+void Timer<Timers::T1>::set_ocr<Channels::A>(typename TimerValueType<Timers::T1>::ValueType newValue);
+
+template<>
+template<>
+void Timer<Timers::T2>::set_ocr<Channels::B>(typename TimerValueType<Timers::T2>::ValueType newValue);
+
+template<>
+template<>
+auto Timer<Timers::T0>::get_ocr<Channels::A>() -> typename TimerValueType<Timers::T0>::ValueType;
+
+template<>
+template<>
+auto Timer<Timers::T0>::get_ocr<Channels::B>() -> typename TimerValueType<Timers::T0>::ValueType;
+
+template<> 
+template<>
+auto Timer<Timers::T1>::get_ocr<Channels::A>() -> TimerValueType<Timers::T1>::ValueType;
+
+template<> 
+template<>
+auto Timer<Timers::T1>::get_ocr<Channels::B>() -> TimerValueType<Timers::T1>::ValueType;
+
+template<>
+template<>
+auto Timer<Timers::T2>::get_ocr<Channels::A>() -> typename TimerValueType<Timers::T2>::ValueType;
+
+template<>
+template<>
+auto Timer<Timers::T2>::get_ocr<Channels::B>() -> typename TimerValueType<Timers::T2>::ValueType;
+
+template<>
+template<> 
+void Timer<Timers::T0>::set_compare_match<Channels::A>(typename CompareMatchT<Timers::T0>::CType compareMatch);
+
+template<>
+template<> 
+void Timer<Timers::T0>::set_compare_match<Channels::B>(typename CompareMatchT<Timers::T0>::CType compareMatch);
+
+template<>
+template<> 
+void Timer<Timers::T1>::set_compare_match<Channels::A>(typename CompareMatchT<Timers::T1>::CType compareMatch);
+
+template<>
+template<> 
+void Timer<Timers::T1>::set_compare_match<Channels::B>(typename CompareMatchT<Timers::T1>::CType compareMatch);
+
+template<>
+template<> 
+void Timer<Timers::T2>::set_compare_match<Channels::A>(typename CompareMatchT<Timers::T2>::CType compareMatch);
+
+template<>
+template<> 
+void Timer<Timers::T2>::set_compare_match<Channels::B>(typename CompareMatchT<Timers::T2>::CType compareMatch);
+
+template<Timers TN>
+template<Pins P>
+void Timer<TN>::set_duty_cycle(typename TimerValueType<TN>::ValueType newDuty){
+    constexpr auto pairing = Pairing<P,TN>();
+
+    static_assert(pairing.valid);
+
+    set_ocr<pairing.channel>(newDuty);
+}
+
+template<Timers TN>
+template<Pins P>
+auto Timer<TN>::get_duty_cycle() -> typename TimerValueType<TN>::ValueType {
+    constexpr auto pairing = Pairing<P,TN>();
+
+    static_assert(pairing.valid);
+
+    return get_ocr<pairing.channel>();
+}
 
 #endif

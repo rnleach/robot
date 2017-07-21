@@ -52,9 +52,9 @@ void Timer<Timers::T0>::set_prescaler(typename PrescalerT<Timers::T0>::PType pre
 }
 
 template<> 
-void Timer<Timers::T1>::set_prescaler(typename PrescalerT<Timers::T1>::PType newPrescale) {
+void Timer<Timers::T1>::set_prescaler(typename PrescalerT<Timers::T1>::PType prescale) {
     using Prescale = PrescalerT<Timers::T1>::PType;
-    switch(newPrescale) {
+    switch(prescale) {
             case Prescale::None:
                 SET_BIT(TCCR1B, CS10);
                 CLEAR_BIT(TCCR1B, CS11);
@@ -81,7 +81,7 @@ void Timer<Timers::T1>::set_prescaler(typename PrescalerT<Timers::T1>::PType new
                 SET_BIT(TCCR1B, CS12);
                 break;
         }
-        currentPrescale_ = newPrescale;
+        currentPrescale_ = prescale;
 }
 
 template<> 
@@ -447,15 +447,226 @@ template<>
 auto Timer<Timers::T1>::get_count() -> TimerValueType<Timers::T1>::ValueType {
 
     TimerValueType<Timers::T1>::ValueType value;
-        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-            value = Registers<Timers::T1>::tcnt;
-        }
-        return value;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        value = Registers<Timers::T1>::tcnt;
+    }
+    return value;
 }
 
 template<> 
 void Timer<Timers::T1>::set_count(typename TimerValueType<Timers::T1>::ValueType new_count) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         TCNT1 = new_count;
+    }
+}
+
+template<>
+template<>
+void Timer<Timers::T0>::set_ocr<Channels::A>(typename TimerValueType<Timers::T0>::ValueType newValue){
+    OCR0A = newValue;
+}
+
+template<>
+template<>
+void Timer<Timers::T1>::set_ocr<Channels::A>(typename TimerValueType<Timers::T1>::ValueType newValue) {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        OCR1A = newValue;
+    }
+}
+
+template<>
+template<>
+void Timer<Timers::T2>::set_ocr<Channels::A>(typename TimerValueType<Timers::T2>::ValueType newValue){
+    OCR2A = newValue;
+}
+
+template<>
+template<>
+auto Timer<Timers::T0>::get_ocr<Channels::A>() -> typename TimerValueType<Timers::T0>::ValueType {
+    return Registers<Timers::T0>::ocrna;
+}
+
+template<> 
+template<>
+auto Timer<Timers::T1>::get_ocr<Channels::A>() -> TimerValueType<Timers::T1>::ValueType {
+    TimerValueType<Timers::T1>::ValueType value;
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        value = Registers<Timers::T1>::ocrna;
+    }
+    return value;
+}
+
+template<>
+template<>
+auto Timer<Timers::T2>::get_ocr<Channels::A>() -> typename TimerValueType<Timers::T2>::ValueType {
+    return Registers<Timers::T2>::ocrna;
+}
+
+template<>
+template<>
+void Timer<Timers::T0>::set_ocr<Channels::B>(typename TimerValueType<Timers::T0>::ValueType newValue){
+    Registers<Timers::T0>::ocrnb = newValue;
+}
+
+template<>
+template<>
+void Timer<Timers::T1>::set_ocr<Channels::B>(typename TimerValueType<Timers::T1>::ValueType newValue) {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        OCR1B = newValue;
+    }
+}
+
+template<>
+template<>
+void Timer<Timers::T2>::set_ocr<Channels::B>(typename TimerValueType<Timers::T2>::ValueType newValue){
+    Registers<Timers::T2>::ocrnb = newValue;
+}
+
+template<>
+template<>
+auto Timer<Timers::T0>::get_ocr<Channels::B>() -> typename TimerValueType<Timers::T0>::ValueType {
+    return Registers<Timers::T0>::ocrnb;
+}
+
+template<> 
+template<>
+auto Timer<Timers::T1>::get_ocr<Channels::B>() -> TimerValueType<Timers::T1>::ValueType {
+    TimerValueType<Timers::T1>::ValueType value;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        value = Registers<Timers::T1>::ocrnb;
+    }
+    return value;
+}
+
+template<>
+template<>
+auto Timer<Timers::T2>::get_ocr<Channels::B>() -> typename TimerValueType<Timers::T2>::ValueType {
+    return Registers<Timers::T2>::ocrnb;
+}
+
+template<>
+template<> 
+void Timer<Timers::T0>::set_compare_match<Channels::A>(typename CompareMatchT<Timers::T0>::CType compareMatch) {
+    using CompareMatch = CompareMatchT<Timers::T0>::CType;
+
+    switch(compareMatch) {
+        case CompareMatch::Clear:
+        case CompareMatch::NonInverting:
+        case CompareMatch::ClearUp:
+            CLEAR_BIT(TCCR0A, COM0A0);
+            SET_BIT(TCCR0A, COM0A1);           
+            break;
+        case CompareMatch::Set:
+        case CompareMatch::Inverting:
+        case CompareMatch::ClearDown:
+            SET_BIT(TCCR0A, COM0A0);
+            SET_BIT(TCCR0A, COM0A1);  
+            break;
+    }
+}
+
+template<>
+template<> 
+void Timer<Timers::T0>::set_compare_match<Channels::B>(typename CompareMatchT<Timers::T0>::CType compareMatch) {
+    using CompareMatch = CompareMatchT<Timers::T0>::CType;
+
+    switch(compareMatch) {
+        case CompareMatch::Clear:
+        case CompareMatch::NonInverting:
+        case CompareMatch::ClearUp:
+            CLEAR_BIT(TCCR0B, COM0B0);
+            SET_BIT(TCCR0B, COM0B1);           
+            break;
+        case CompareMatch::Set:
+        case CompareMatch::Inverting:
+        case CompareMatch::ClearDown:
+            SET_BIT(TCCR0B, COM0B0);
+            SET_BIT(TCCR0B, COM0B1);  
+            break;
+    }
+}
+
+template<>
+template<> 
+void Timer<Timers::T1>::set_compare_match<Channels::A>(typename CompareMatchT<Timers::T1>::CType compareMatch) {
+    using CompareMatch = CompareMatchT<Timers::T1>::CType;
+
+    switch(compareMatch) {
+        case CompareMatch::Clear:
+        case CompareMatch::NonInverting:
+        case CompareMatch::ClearUp:
+            CLEAR_BIT(TCCR1A, COM1A0);
+            SET_BIT(TCCR1A, COM1A1);           
+            break;
+        case CompareMatch::Set:
+        case CompareMatch::Inverting:
+        case CompareMatch::ClearDown:
+            SET_BIT(TCCR1A, COM1A0);
+            SET_BIT(TCCR1A, COM1A1);  
+            break;
+    }
+}
+
+template<>
+template<> 
+void Timer<Timers::T1>::set_compare_match<Channels::B>(typename CompareMatchT<Timers::T1>::CType compareMatch) {
+    using CompareMatch = CompareMatchT<Timers::T1>::CType;
+
+    switch(compareMatch) {
+        case CompareMatch::Clear:
+        case CompareMatch::NonInverting:
+        case CompareMatch::ClearUp:
+            CLEAR_BIT(TCCR1B, COM1B0);
+            SET_BIT(TCCR1B, COM1B1);           
+            break;
+        case CompareMatch::Set:
+        case CompareMatch::Inverting:
+        case CompareMatch::ClearDown:
+            SET_BIT(TCCR1B, COM1B0);
+            SET_BIT(TCCR1B, COM1B1);  
+            break;
+    }
+}
+
+template<>
+template<> 
+void Timer<Timers::T2>::set_compare_match<Channels::A>(typename CompareMatchT<Timers::T2>::CType compareMatch) {
+    using CompareMatch = CompareMatchT<Timers::T2>::CType;
+
+    switch(compareMatch) {
+        case CompareMatch::Clear:
+        case CompareMatch::NonInverting:
+        case CompareMatch::ClearUp:
+            CLEAR_BIT(TCCR2A, COM2A0);
+            SET_BIT(TCCR2A, COM2A1);           
+            break;
+        case CompareMatch::Set:
+        case CompareMatch::Inverting:
+        case CompareMatch::ClearDown:
+            SET_BIT(TCCR2A, COM2A0);
+            SET_BIT(TCCR2A, COM2A1);  
+            break;
+    }
+}
+
+template<>
+template<> 
+void Timer<Timers::T2>::set_compare_match<Channels::B>(typename CompareMatchT<Timers::T2>::CType compareMatch) {
+    using CompareMatch = CompareMatchT<Timers::T2>::CType;
+
+    switch(compareMatch) {
+        case CompareMatch::Clear:
+        case CompareMatch::NonInverting:
+        case CompareMatch::ClearUp:
+            CLEAR_BIT(TCCR2B, COM2B0);
+            SET_BIT(TCCR2B, COM2B1);           
+            break;
+        case CompareMatch::Set:
+        case CompareMatch::Inverting:
+        case CompareMatch::ClearDown:
+            SET_BIT(TCCR2B, COM2B0);
+            SET_BIT(TCCR2B, COM2B1);  
+            break;
     }
 }

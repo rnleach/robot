@@ -43,6 +43,8 @@ Timer<1> t1;
 Timer<2> t2;
 */
 
+static_assert(Pairing<Pins::D06_PWM, Timers::T0>::valid);
+static_assert(Pairing<Pins::D05_PWM, Timers::T0>::valid);
 
 int main (void)
 {
