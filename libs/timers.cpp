@@ -772,7 +772,6 @@ namespace Timer2 {
         return get_OCR2A();
     }
     
-
     // Channel B
     void set_compare_match_Ch_B(CompareMatch compare_match) {
         switch(compare_match) {
