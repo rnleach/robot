@@ -366,7 +366,7 @@ template<Pins P>
 void Timer<TN>::set_duty_cycle(typename TimerValueType<TN>::ValueType newDuty){
     constexpr auto pairing = Pairing<P,TN>();
 
-    static_assert(pairing.valid);
+    static_assert(pairing.valid,"Invalid pairing of pin and timer.");
 
     set_ocr<pairing.channel>(newDuty);
 }
@@ -376,7 +376,7 @@ template<Pins P>
 auto Timer<TN>::get_duty_cycle() -> typename TimerValueType<TN>::ValueType {
     constexpr auto pairing = Pairing<P,TN>();
 
-    static_assert(pairing.valid);
+    static_assert(pairing.valid,"Invalid pairing of pin and timer.");
 
     return get_ocr<pairing.channel>();
 }

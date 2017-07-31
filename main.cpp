@@ -36,8 +36,8 @@ void init (void)
 #define STEPSIZE ((MAXT - MINT)/(RANGE_DEGREES / INCREMENT_DEGREES))
 #define DELAY 13
 
-static_assert(Pairing<Pins::D06_PWM, Timers::T0>::valid);
-static_assert(Pairing<Pins::D05_PWM, Timers::T0>::valid);
+static_assert(Pairing<Pins::D06_PWM, Timers::T0>::valid,"Invalid pairing of pin and timer.");
+static_assert(Pairing<Pins::D05_PWM, Timers::T0>::valid,"Invalid pairing of pin and timer.");
 
 int main (void)
 {

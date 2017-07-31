@@ -13,7 +13,7 @@ Author: Ryan Leach
 
 template<Pins P, Timers TN>
 class Servo {
-    static_assert(Pairing<P, TN>::valid);
+    static_assert(Pairing<P, TN>::valid,"Invalid pairing of pin and timer.");
 
     public:
         Servo(typename TimerValueType<TN>::ValueType mn_cnt, typename TimerValueType<TN>::ValueType mx_cnt);
