@@ -42,7 +42,7 @@ static_assert(Pairing<Pins::D05_PWM, Timers::T0>::valid,"Invalid pairing of pin 
 int main (void)
 {
     init();
-    // auto servo = ServoSG90_Pin09(MINT, MAXT);
+    // auto servo = ServoSG90<Pins::D09_PWM, Timers::T1>(MINT, MAXT);
     while(1){
         // printf("T0 count = %u\n", Timer<Timers::T0>::get_count());
         // printf("T1 count = %u\n", Timer<Timers::T1>::get_count());
@@ -128,5 +128,6 @@ int main (void)
         // printf("us = %lu\n", us);
         printf("cm = %lu\n", us / 58);
         // _delay_ms(2000);
+
     }
 }
