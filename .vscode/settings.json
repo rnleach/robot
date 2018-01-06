@@ -9,5 +9,6 @@
     "**/*.o": true,
     "**/*.elf": true,
     "**/*.hex": true
-  }
+  },
+  "C_Cpp.intelliSenseEngineFallback": "Enabled"
 }

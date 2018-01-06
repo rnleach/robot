@@ -42,6 +42,7 @@ static_assert(Pairing<Pins::D05_PWM, Timers::T0>::valid,"Invalid pairing of pin 
 int main (void)
 {
     init();
+    uint32_t avg = 0;
     // auto servo = ServoSG90<Pins::D09_PWM, Timers::T1>(MINT, MAXT);
     while(1){
         // printf("T0 count = %u\n", Timer<Timers::T0>::get_count());
@@ -126,7 +127,9 @@ int main (void)
         // printf("ticks = %u\nprescale = %u\n", ticks,Timer<Timers::T1>::get_prescale());
         // printf("multiplier = %f\n", (static_cast<float>(Timer<Timers::T1>::get_prescale()) * 1000000.0 / F_CPU));
         // printf("us = %lu\n", us);
-        printf("cm = %lu\n", us / 58);
+        printf("%lu,", us / 58);
+        avg = (4 * avg + us / 58) / 5;
+        printf("%lu,\n", avg);
         // _delay_ms(2000);
 
     }

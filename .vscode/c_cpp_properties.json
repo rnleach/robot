@@ -20,15 +20,21 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "macFrameworkPath": [
+                "/System/Library/Frameworks",
+                "/Library/Frameworks"
+            ]
         },
         {
             "name": "Linux",
             "includePath": [
                 "${workspaceRoot}",
-                "/usr/lib/avr/include/avr",
+                "/usr/lib/avr/include/avr/",
                 "/usr/lib/avr/include/",
-                "${workspaceRoot}/libs"
+                "/usr/lib/gcc/avr/4.9.2/include/",
+                "${workspaceRoot}/libs",
+                "${workspaceRoot}/project_libs/"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
@@ -38,6 +44,7 @@
                     "/usr/lib/avr/include/avr/*",
                     "/usr/lib/avr/include/*",
                     "${workspaceRoot}/libs/*",
+                    "${workspaceRoot}/project_libs/*",
                     "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
@@ -65,5 +72,5 @@
             }
         }
     ],
-    "version": 2
+    "version": 3
 }
